@@ -22,70 +22,53 @@ interface TimeOption     { label: string; seconds: number; }
 interface EvalState      { type: "cp" | "mate" | null; value: number; }
 
 // ── Opening book ──────────────────────────────────────────────────────────────
-// Keys   = space-joined move history from White's perspective
-// Values = array of candidate SAN responses (one is picked at random)
-// Covers the first 4–6 half-moves of the most common openings.
-// Bot uses this before falling back to Stockfish.
 
 const OPENING_BOOK: Record<string, string[]> = {
-  // ── After 1.e4 ───────────────────────────────────────────────────────────
-  "e4":               ["e5", "c5", "e6", "c6", "d6", "d5"],   // Black's reply to 1.e4
-  "e4 c5":            ["Nf3", "Nc3"],                          // Sicilian: White's reply
+  "e4":               ["e5", "c5", "e6", "c6", "d6", "d5"],
+  "e4 c5":            ["Nf3", "Nc3"],
   "e4 c5 Nf3":        ["d6", "Nc6", "e6"],
   "e4 c5 Nf3 d6":     ["d4"],
   "e4 c5 Nf3 Nc6":    ["d4", "Bb5"],
-  "e4 e5":            ["Nf3", "Nc3", "f4"],                    // Open game
+  "e4 e5":            ["Nf3", "Nc3", "f4"],
   "e4 e5 Nf3":        ["Nc6", "Nf6", "d6"],
-  "e4 e5 Nf3 Nc6":    ["Bb5", "Bc4", "d4"],                   // Ruy Lopez / Italian
-  "e4 e5 Nf3 Nc6 Bb5":["a6", "Nf6", "d6"],                    // Ruy Lopez
-  "e4 e5 Nf3 Nc6 Bc4":["Bc5", "Nf6", "d6"],                   // Italian Game
-  "e4 e5 Nf3 Nf6":    ["Nxe5", "Nc3", "d3"],                  // Petrov Defence
-  "e4 d5":            ["exd5", "Nc3", "d4"],                   // Scandinavian
+  "e4 e5 Nf3 Nc6":    ["Bb5", "Bc4", "d4"],
+  "e4 e5 Nf3 Nc6 Bb5":["a6", "Nf6", "d6"],
+  "e4 e5 Nf3 Nc6 Bc4":["Bc5", "Nf6", "d6"],
+  "e4 e5 Nf3 Nf6":    ["Nxe5", "Nc3", "d3"],
+  "e4 d5":            ["exd5", "Nc3", "d4"],
   "e4 d5 exd5":       ["Qxd5", "Nf6"],
-  "e4 e6":            ["d4", "Nf3"],                           // French Defence
+  "e4 e6":            ["d4", "Nf3"],
   "e4 e6 d4":         ["d5"],
   "e4 e6 d4 d5":      ["Nc3", "Nd2", "e5"],
-  "e4 c6":            ["d4", "Nf3"],                           // Caro-Kann
+  "e4 c6":            ["d4", "Nf3"],
   "e4 c6 d4":         ["d5"],
   "e4 c6 d4 d5":      ["Nc3", "e5", "exd5"],
-
-  // ── After 1.d4 ───────────────────────────────────────────────────────────
   "d4":               ["d5", "Nf6", "e6", "c5", "f5"],
-  "d4 d5":            ["c4", "Nf3", "Bf4"],                    // Queen's Gambit
-  "d4 d5 c4":         ["e6", "c6", "dxc4", "Nf6"],             // QGD / QGA / Slav
-  "d4 d5 c4 e6":      ["Nc3", "Nf3"],                          // QGD
-  "d4 d5 c4 c6":      ["Nf3", "Nc3"],                          // Slav
-  "d4 Nf6":           ["c4", "Nf3", "Bf4"],                    // Indian systems
+  "d4 d5":            ["c4", "Nf3", "Bf4"],
+  "d4 d5 c4":         ["e6", "c6", "dxc4", "Nf6"],
+  "d4 d5 c4 e6":      ["Nc3", "Nf3"],
+  "d4 d5 c4 c6":      ["Nf3", "Nc3"],
+  "d4 Nf6":           ["c4", "Nf3", "Bf4"],
   "d4 Nf6 c4":        ["e6", "g6", "c5"],
-  "d4 Nf6 c4 e6":     ["Nc3", "Nf3"],                          // Nimzo / QID
-  "d4 Nf6 c4 g6":     ["Nc3", "Nf3", "g3"],                    // King's Indian
+  "d4 Nf6 c4 e6":     ["Nc3", "Nf3"],
+  "d4 Nf6 c4 g6":     ["Nc3", "Nf3", "g3"],
   "d4 Nf6 c4 g6 Nc3": ["Bg7"],
-  "d4 c5":            ["d5", "Nf3", "c3"],                     // Benoni
-
-  // ── After 1.Nf3 ──────────────────────────────────────────────────────────
+  "d4 c5":            ["d5", "Nf3", "c3"],
   "Nf3":              ["d5", "Nf6", "c5", "e6"],
   "Nf3 d5":           ["d4", "c4", "g3"],
   "Nf3 Nf6":          ["d4", "c4", "g3"],
-
-  // ── After 1.c4 (English) ─────────────────────────────────────────────────
   "c4":               ["e5", "c5", "Nf6", "e6", "c6"],
   "c4 e5":            ["Nc3", "g3", "Nf3"],
   "c4 Nf6":           ["Nc3", "g3", "d4"],
 };
 
-// Look up a book move for the current game.
-// Returns a SAN string or null if the position isn't in the book.
 function getBookMove(g: Chess): string | null {
-  const history = g.history();
-  const key     = history.join(" ");
+  const key     = g.history().join(" ");
   const entries = OPENING_BOOK[key];
   if (!entries || entries.length === 0) return null;
-
-  // Filter to only legal moves in the current position
   const legal   = new Set(g.moves());
   const options = entries.filter((m) => legal.has(m));
   if (options.length === 0) return null;
-
   return options[Math.floor(Math.random() * options.length)];
 }
 
@@ -376,29 +359,30 @@ export default function ChessGame() {
   const [evalState,        setEvalState]        = useState(initialEval);
   const [isMuted,          setIsMuted]          = useState(false);
   const [isBookMove,       setIsBookMove]       = useState(false);
+  const [userEmail,        setUserEmail]        = useState("");
+  const [gameSaved,        setGameSaved]        = useState(false);
+  const [gameSaving,       setGameSaving]       = useState(false);
 
   // ── Refs ──────────────────────────────────────────────────────────────────
-  const difficultyRef      = useRef<BotDifficulty>("easy");
-  const gameModeRef        = useRef<GameMode>("local");
-  const playerColorRef     = useRef<PlayerColor>("w");
-  const isMutedRef         = useRef(false);
-  const whiteTimeRef       = useRef(0);
-  const blackTimeRef       = useRef(0);
-  const timedOutRef        = useRef<TimedOut>(null);
-  const intervalRef        = useRef<ReturnType<typeof setInterval> | null>(null);
+  const difficultyRef       = useRef<BotDifficulty>("easy");
+  const gameModeRef         = useRef<GameMode>("local");
+  const playerColorRef      = useRef<PlayerColor>("w");
+  const isMutedRef          = useRef(false);
+  const whiteTimeRef        = useRef(0);
+  const blackTimeRef        = useRef(0);
+  const timedOutRef         = useRef<TimedOut>(null);
+  const intervalRef         = useRef<ReturnType<typeof setInterval> | null>(null);
   const historyContainerRef = useRef<HTMLDivElement>(null);
+  const workerRef           = useRef<Worker | null>(null);
+  const sessionRef          = useRef(0);
+  const engineCallbackRef   = useRef<((line: string) => void) | null>(null);
+  const onInfoRef           = useRef<((line: string) => void) | null>(null);
+  const sndMove             = useRef<HTMLAudioElement | null>(null);
+  const sndCapture          = useRef<HTMLAudioElement | null>(null);
+  const sndCheck            = useRef<HTMLAudioElement | null>(null);
+  const sndCheckmate        = useRef<HTMLAudioElement | null>(null);
 
-  // Engine refs
-  const workerRef         = useRef<Worker | null>(null);
-  const sessionRef        = useRef(0);
-  const engineCallbackRef = useRef<((line: string) => void) | null>(null);
-  const onInfoRef         = useRef<((line: string) => void) | null>(null);
-
-  // Sound refs
-  const sndMove      = useRef<HTMLAudioElement | null>(null);
-  const sndCapture   = useRef<HTMLAudioElement | null>(null);
-  const sndCheck     = useRef<HTMLAudioElement | null>(null);
-  const sndCheckmate = useRef<HTMLAudioElement | null>(null);
+  // ── Effects ───────────────────────────────────────────────────────────────
 
   useEffect(() => {
     sndMove.current      = new Audio("/move.mp3");
@@ -406,6 +390,11 @@ export default function ChessGame() {
     sndCheck.current     = new Audio("/check.mp3");
     sndCheckmate.current = new Audio("/checkmate.mp3");
     [sndMove, sndCapture, sndCheck, sndCheckmate].forEach((r) => { if (r.current) r.current.load(); });
+  }, []);
+
+  useEffect(() => {
+    const email = localStorage.getItem("userEmail");
+    if (email) setUserEmail(email);
   }, []);
 
   useEffect(() => { difficultyRef.current  = difficulty;  }, [difficulty]);
@@ -419,22 +408,6 @@ export default function ChessGame() {
     }
   }, [fen]);
 
-  // ── Sound player ──────────────────────────────────────────────────────────
-
-  function playMoveSound(isCapture: boolean, afterG: Chess) {
-    if (isMutedRef.current) return;
-    let target: HTMLAudioElement | null = null;
-    if (afterG.isCheckmate())  target = sndCheckmate.current;
-    else if (afterG.inCheck()) target = sndCheck.current;
-    else if (isCapture)        target = sndCapture.current;
-    else                       target = sndMove.current;
-    if (!target) return;
-    target.currentTime = 0;
-    target.play().catch(() => {});
-  }
-
-  // ── Stockfish worker lifecycle ────────────────────────────────────────────
-
   useEffect(() => {
     const worker = new Worker("/stockfish-worker.js");
     worker.onmessage = (e: MessageEvent) => {
@@ -447,8 +420,6 @@ export default function ChessGame() {
     workerRef.current = worker;
     return () => { worker.terminate(); workerRef.current = null; };
   }, []);
-
-  // ── Clock tick ────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
@@ -484,6 +455,20 @@ export default function ChessGame() {
       setStatusState(deriveStatus(gameRef.current, false, timedOutColor, gameModeRef.current, playerColorRef.current));
   }, [timedOutColor]);
 
+  // ── Sound ─────────────────────────────────────────────────────────────────
+
+  function playMoveSound(isCapture: boolean, afterG: Chess) {
+    if (isMutedRef.current) return;
+    let target: HTMLAudioElement | null = null;
+    if (afterG.isCheckmate())  target = sndCheckmate.current;
+    else if (afterG.inCheck()) target = sndCheck.current;
+    else if (isCapture)        target = sndCapture.current;
+    else                       target = sndMove.current;
+    if (!target) return;
+    target.currentTime = 0;
+    target.play().catch(() => {});
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   function resetClocksTo(seconds: number) {
@@ -516,34 +501,30 @@ export default function ChessGame() {
     return gameRef.current.turn() !== playerColorRef.current;
   }
 
-  // ── Expert bot — book first, then Stockfish ───────────────────────────────
+  // ── Expert bot ────────────────────────────────────────────────────────────
 
   function scheduleExpertMove(fenString: string) {
-    const g          = gameRef.current;
-    const bookMove   = getBookMove(g);
+    const g        = gameRef.current;
+    const bookMove = getBookMove(g);
 
-    // ── Opening book hit — play immediately with short delay for UX ────────
     if (bookMove) {
-      setIsBotThinking(true);
-      setIsBookMove(true);
+      setIsBotThinking(true); setIsBookMove(true);
       setTimeout(() => {
-        const currentG = gameRef.current;
-        if (currentG.isGameOver() || !isBotTurn() || timedOutRef.current !== null) {
+        const cg = gameRef.current;
+        if (cg.isGameOver() || !isBotTurn() || timedOutRef.current !== null) {
           setIsBotThinking(false); setIsBookMove(false); return;
         }
         try {
-          const result = currentG.move(bookMove);
-          if (result) {
-            playMoveSound(result.flags.includes("c") || result.flags.includes("e"), currentG);
-            setIsBotThinking(false); setIsBookMove(false);
-            syncState(result.from, result.to, false);
+          const r = cg.move(bookMove);
+          if (r) {
+            playMoveSound(r.flags.includes("c") || r.flags.includes("e"), cg);
+            setIsBotThinking(false); setIsBookMove(false); syncState(r.from, r.to, false);
           } else { setIsBotThinking(false); setIsBookMove(false); }
         } catch { setIsBotThinking(false); setIsBookMove(false); }
       }, BOT_DELAY_MS);
       return;
     }
 
-    // ── No book move — hand off to Stockfish ──────────────────────────────
     setIsBookMove(false);
     const mySession  = ++sessionRef.current;
     const searchTurn = g.turn();
@@ -551,13 +532,13 @@ export default function ChessGame() {
 
     if (!workerRef.current) {
       setTimeout(() => {
-        const currentG = gameRef.current;
-        if (currentG.isGameOver() || !isBotTurn()) { setIsBotThinking(false); return; }
-        const san = pickHardMove(currentG, playerColorRef.current);
+        const cg = gameRef.current;
+        if (cg.isGameOver() || !isBotTurn()) { setIsBotThinking(false); return; }
+        const san = pickHardMove(cg, playerColorRef.current);
         if (!san) { setIsBotThinking(false); return; }
-        const r = currentG.move(san);
-        if (!r)   { setIsBotThinking(false); return; }
-        playMoveSound(r.flags.includes("c") || r.flags.includes("e"), currentG);
+        const r = cg.move(san);
+        if (!r) { setIsBotThinking(false); return; }
+        playMoveSound(r.flags.includes("c") || r.flags.includes("e"), cg);
         setIsBotThinking(false); syncState(r.from, r.to, false);
       }, BOT_DELAY_MS);
       return;
@@ -573,23 +554,18 @@ export default function ChessGame() {
       if (!line.startsWith("bestmove")) return;
       if (mySession !== sessionRef.current) return;
       engineCallbackRef.current = null; onInfoRef.current = null;
-
       const token = line.split(" ")[1];
       if (!token || token === "(none)") { setIsBotThinking(false); return; }
-
       const from  = token.slice(0, 2) as Square;
       const to    = token.slice(2, 4) as Square;
       const promo = token.length > 4 ? token[4] : "q";
-      const currentG = gameRef.current;
-
-      if (currentG.isGameOver() || !isBotTurn() || timedOutRef.current !== null) {
-        setIsBotThinking(false); return;
-      }
+      const cg    = gameRef.current;
+      if (cg.isGameOver() || !isBotTurn() || timedOutRef.current !== null) { setIsBotThinking(false); return; }
       try {
-        const result = currentG.move({ from, to, promotion: promo });
-        if (result) {
-          playMoveSound(result.flags.includes("c") || result.flags.includes("e"), currentG);
-          setIsBotThinking(false); syncState(result.from, result.to, false);
+        const r = cg.move({ from, to, promotion: promo });
+        if (r) {
+          playMoveSound(r.flags.includes("c") || r.flags.includes("e"), cg);
+          setIsBotThinking(false); syncState(r.from, r.to, false);
         } else { setIsBotThinking(false); }
       } catch { setIsBotThinking(false); }
     };
@@ -604,15 +580,13 @@ export default function ChessGame() {
     setIsBotThinking(true);
     setTimeout(() => {
       const g = gameRef.current;
-      if (g.isGameOver() || !isBotTurn() || timedOutRef.current !== null) {
-        setIsBotThinking(false); return;
-      }
+      if (g.isGameOver() || !isBotTurn() || timedOutRef.current !== null) { setIsBotThinking(false); return; }
       const san = pickBotMove(g, difficultyRef.current, playerColorRef.current);
       if (!san) { setIsBotThinking(false); return; }
-      const result = g.move(san);
-      if (!result) { setIsBotThinking(false); return; }
-      playMoveSound(result.flags.includes("c") || result.flags.includes("e"), g);
-      setIsBotThinking(false); syncState(result.from, result.to, false);
+      const r = g.move(san);
+      if (!r)   { setIsBotThinking(false); return; }
+      playMoveSound(r.flags.includes("c") || r.flags.includes("e"), g);
+      setIsBotThinking(false); syncState(r.from, r.to, false);
     }, BOT_DELAY_MS);
   }
 
@@ -690,7 +664,7 @@ export default function ChessGame() {
 
   function doRestart(mode: GameMode, pColor: PlayerColor, diff: BotDifficulty, tc: number) {
     stopEngine(); clearEval();
-    setIsBookMove(false);
+    setIsBookMove(false); setGameSaved(false);
     gameRef.current = new Chess();
     setFen(gameRef.current.fen()); setStatusState(initialStatus);
     setLastMove(null); setCaptured(initialCaptured); setIsBotThinking(false);
@@ -726,6 +700,41 @@ export default function ChessGame() {
   }
   function handleFlipBoard()  { setBoardOrientation((prev) => prev === "white" ? "black" : "white"); }
   function handleToggleMute() { setIsMuted((prev) => !prev); }
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userEmail");
+    setUserEmail("");
+  }
+
+  // ── Save game ─────────────────────────────────────────────────────────────
+
+  async function handleSaveGame() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setGameSaving(true);
+    try {
+      const g = gameRef.current;
+      const res = await fetch("/api/games", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          whitePlayer: playerColor === "w" ? (userEmail || "Player") : "Computer",
+          blackPlayer: playerColor === "b" ? (userEmail || "Player") : "Computer",
+          moves:  g.history(),
+          result: deriveResult(g, timedOutRef.current),
+          pgn:    buildPgn(g, gameMode, playerColor, timedOutRef.current),
+        }),
+      });
+      if (res.ok) { setGameSaved(true); setTimeout(() => setGameSaved(false), 3000); }
+    } catch { /* silently fail */ }
+    finally  { setGameSaving(false); }
+  }
 
   // ── PGN / FEN export ──────────────────────────────────────────────────────
 
@@ -785,9 +794,7 @@ export default function ChessGame() {
   const bottomCaptured = boardOrientation === "white" ? captured.white : captured.black;
   const topColor: "w" | "b"    = boardOrientation === "white" ? "b" : "w";
   const bottomColor: "w" | "b" = boardOrientation === "white" ? "w" : "b";
-
-  // Thinking label — distinguish book vs engine
-  const thinkingLabel = isBookMove ? "Playing book move…" : "Computer thinking…";
+  const thinkingLabel  = isBookMove ? "Playing book move…" : "Computer thinking…";
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -795,7 +802,7 @@ export default function ChessGame() {
     <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center px-6 py-10">
       <section className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
 
-        {/* ── Board column ─────────────────────────────────────────────── */}
+        {/* Board column */}
         <div className="flex flex-col gap-3 items-center w-full">
 
           <div className={`w-full ${boardMaxW} flex items-center justify-between min-h-[36px] px-1`}>
@@ -815,9 +822,7 @@ export default function ChessGame() {
           </div>
 
           <div className={`flex gap-2 items-stretch w-full ${boardMaxW}`}>
-            {showEvalBar && (
-              <EvalBar whitePercent={whitePercent} display={evalDisplay} orientation={boardOrientation} />
-            )}
+            {showEvalBar && <EvalBar whitePercent={whitePercent} display={evalDisplay} orientation={boardOrientation} />}
             <div className="flex-1 min-w-0">
               <Chessboard
                 id="MainBoard"
@@ -854,9 +859,10 @@ export default function ChessGame() {
           </div>
         </div>
 
-        {/* ── Sidebar ──────────────────────────────────────────────────── */}
+        {/* Sidebar */}
         <aside className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-2xl space-y-4">
 
+          {/* Header */}
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold tracking-tight">Chess</h1>
             <button onClick={handleToggleMute} title={isMuted ? "Unmute" : "Mute"}
@@ -865,6 +871,32 @@ export default function ChessGame() {
             </button>
           </div>
 
+          {/* User info */}
+          {userEmail ? (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-green-400 text-xs">●</span>
+                <span className="text-xs text-zinc-400 truncate">{userEmail}</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <a href="/games" className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors font-semibold">
+                  History
+                </a>
+                <button onClick={handleLogout} className="text-[11px] text-zinc-600 hover:text-red-400 transition-colors">
+                  Logout
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 flex items-center justify-between">
+              <span className="text-xs text-zinc-600 italic">Playing as guest</span>
+              <a href="/auth" className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors font-semibold">
+                Sign in
+              </a>
+            </div>
+          )}
+
+          {/* Game mode */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-1 flex gap-1">
             {(["local", "vs-computer"] as GameMode[]).map((mode) => (
               <button key={mode} onClick={() => handleModeChange(mode)}
@@ -876,6 +908,7 @@ export default function ChessGame() {
             ))}
           </div>
 
+          {/* Vs Computer options */}
           {gameMode === "vs-computer" && (
             <>
               <div className="space-y-2">
@@ -910,6 +943,7 @@ export default function ChessGame() {
             </>
           )}
 
+          {/* Time control */}
           <div className="space-y-2">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Time Control</p>
             <div className="grid grid-cols-5 gap-1 rounded-xl border border-zinc-800 bg-zinc-950 p-1">
@@ -925,6 +959,7 @@ export default function ChessGame() {
             {timeControl > 0 && <p className="text-[11px] text-zinc-600 italic px-1">Undo disabled with active clock.</p>}
           </div>
 
+          {/* Status */}
           <div className={`rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${VARIANT_STYLES[statusState.variant]}`}>
             <div className="flex items-center gap-2">
               {isBotThinking && <span className="inline-block w-2 h-2 rounded-full bg-zinc-400 animate-pulse shrink-0" />}
@@ -932,6 +967,7 @@ export default function ChessGame() {
             </div>
           </div>
 
+          {/* Eval (Expert only) */}
           {showEvalBar && (
             <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 flex items-center justify-between">
               <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
@@ -950,6 +986,7 @@ export default function ChessGame() {
             </div>
           )}
 
+          {/* Buttons */}
           <div className="flex gap-2">
             <button onClick={handleRestart}
               className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-sm font-semibold transition-all">
@@ -964,6 +1001,7 @@ export default function ChessGame() {
             </button>
           </div>
 
+          {/* Move history */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
             <div className="flex items-center justify-between mb-3">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Move History</p>
@@ -986,6 +1024,7 @@ export default function ChessGame() {
               )}
           </div>
 
+          {/* PGN Export */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-3">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Export</p>
             {hasMoves
@@ -1012,16 +1051,29 @@ export default function ChessGame() {
             </button>
           </div>
 
+          {/* Game over banner */}
           {isGameOver && (
-            <div className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-center text-xs text-zinc-400">
-              Game over —{" "}
-              <button onClick={handleRestart}
-                className="text-white font-semibold underline underline-offset-2 hover:text-indigo-400 transition-colors">
-                Restart
-              </button>{" "}to play again
+            <div className="space-y-2">
+              <div className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-center text-xs text-zinc-400">
+                Game over —{" "}
+                <button onClick={handleRestart}
+                  className="text-white font-semibold underline underline-offset-2 hover:text-indigo-400 transition-colors">
+                  Restart
+                </button>{" "}to play again
+              </div>
+              {userEmail && (
+                <button
+                  onClick={handleSaveGame}
+                  disabled={gameSaving || gameSaved}
+                  className="w-full py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all"
+                >
+                  {gameSaved ? "✓ Game Saved!" : gameSaving ? "Saving…" : "Save Game"}
+                </button>
+              )}
             </div>
           )}
 
+          {/* Legend */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-2">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 mb-1">Legend</p>
             {[
@@ -1037,6 +1089,7 @@ export default function ChessGame() {
             ))}
           </div>
 
+          {/* FEN debug */}
           <details>
             <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-widest text-zinc-600 hover:text-zinc-400 transition-colors select-none">
               FEN (debug)
