@@ -9,7 +9,7 @@ export default function AuthPage() {
   const router = useRouter();
 
   const initialMode: AuthMode = "login";
-  const [mode,     setMode]     = useState(initialMode);
+  const [mode,     setMode]     = useState<AuthMode>(initialMode);
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
   const [error,    setError]    = useState("");
@@ -40,11 +40,8 @@ export default function AuthPage() {
         return;
       }
 
-      // Store token and email
       localStorage.setItem("token", data.token);
       localStorage.setItem("userEmail", data.email);
-
-      // Redirect to play
       router.push("/play");
     } catch {
       setError("Network error. Please try again.");
@@ -52,18 +49,33 @@ export default function AuthPage() {
     }
   }
 
-  function toggleMode() {
-    setMode((prev) => (prev === "login" ? "register" : "login"));
+  function switchToLogin() {
+    setMode("login");
     setError("");
     setEmail("");
     setPassword("");
+  }
+
+  function switchToRegister() {
+    setMode("register");
+    setError("");
+    setEmail("");
+    setPassword("");
+  }
+
+  function toggleMode() {
+    if (mode === "login") {
+      switchToRegister();
+    } else {
+      switchToLogin();
+    }
   }
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center px-6">
       <div className="w-full max-w-md space-y-8">
 
-        {/* Logo / Title */}
+        {/* Logo */}
         <div className="text-center space-y-2">
           <div className="text-6xl">♟</div>
           <h1 className="text-3xl font-bold tracking-tight">Chess</h1>
@@ -80,7 +92,7 @@ export default function AuthPage() {
           {/* Mode tabs */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-1 flex gap-1">
             <button
-              onClick={() => { setMode("login"); setError(""); }}
+              onClick={switchToLogin}
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                 mode === "login"
                   ? "bg-indigo-600 text-white"
@@ -90,7 +102,7 @@ export default function AuthPage() {
               Sign In
             </button>
             <button
-              onClick={() => { setMode("register"); setError(""); }}
+              onClick={switchToRegister}
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                 mode === "register"
                   ? "bg-indigo-600 text-white"
@@ -149,7 +161,7 @@ export default function AuthPage() {
             >
               {loading
                 ? mode === "login" ? "Signing in…" : "Creating account…"
-                : mode === "login" ? "Sign In" : "Create Account"}
+                : mode === "login" ? "Sign In"     : "Create Account"}
             </button>
           </form>
 
@@ -167,7 +179,7 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Play as guest */}
+        {/* Guest */}
         <div className="text-center">
           <button
             onClick={() => router.push("/play")}

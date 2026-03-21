@@ -4,17 +4,18 @@ import next from "next";
 import { Server } from "socket.io";
 
 const dev  = process.env.NODE_ENV !== "production";
+const port = parseInt(process.env.PORT || "3000", 10);
 const app  = next({ dev });
 const handle = app.getRequestHandler();
 
 // ── Game room state ───────────────────────────────────────────────────────────
 
 interface GameRoom {
-  players:   string[];          // socket IDs [white, black]
-  fen:       string;            // current board position
-  turn:      "w" | "b";        // whose turn
-  moves:     string[];          // move history
-  status:    "waiting" | "playing" | "finished";
+  players: string[];
+  fen:     string;
+  turn:    "w" | "b";
+  moves:   string[];
+  status:  "waiting" | "playing" | "finished";
 }
 
 const rooms = new Map<string, GameRoom>();
@@ -30,7 +31,7 @@ function findWaitingRoom(): string | null {
   return null;
 }
 
-// ── Server boot ───────────────────────────────────────────────────────────────
+// ── Boot ──────────────────────────────────────────────────────────────────────
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
@@ -39,17 +40,19 @@ app.prepare().then(() => {
   });
 
   const io = new Server(httpServer, {
-    cors: { origin: "*", methods: ["GET", "POST"] },
+    cors: {
+      origin:  "*",
+      methods: ["GET", "POST"],
+    },
   });
 
   io.on("connection", (socket) => {
     console.log(`[socket] connected: ${socket.id}`);
 
-    // ── Join matchmaking ────────────────────────────────────────────────────
+    // ── Join matchmaking ──────────────────────────────────────────────────────
     socket.on("joinGame", (preferredRoomId?: string) => {
       let roomId: string;
 
-      // Try to join a specific room by ID (invite link)
       if (preferredRoomId && rooms.has(preferredRoomId)) {
         const room = rooms.get(preferredRoomId)!;
         if (room.status === "waiting" && room.players.length === 1) {
@@ -59,7 +62,6 @@ app.prepare().then(() => {
           return;
         }
       } else {
-        // Find any waiting room or create a new one
         const existing = findWaitingRoom();
         if (existing) {
           roomId = existing;
@@ -83,7 +85,6 @@ app.prepare().then(() => {
       socket.emit("assignColor", { color, roomId });
       console.log(`[socket] ${socket.id} joined room ${roomId} as ${color}`);
 
-      // Second player joined — start the game
       if (room.players.length === 2) {
         room.status = "playing";
         io.to(roomId).emit("gameStart", {
@@ -99,7 +100,7 @@ app.prepare().then(() => {
       }
     });
 
-    // ── Player makes a move ─────────────────────────────────────────────────
+    // ── Player makes a move ───────────────────────────────────────────────────
     socket.on("makeMove", ({ roomId, move, fen, turn }: {
       roomId: string;
       move:   string;
@@ -109,22 +110,22 @@ app.prepare().then(() => {
       const room = rooms.get(roomId);
       if (!room || room.status !== "playing") return;
 
-      // Validate it's this player's turn
       const expectedSocketId = turn === "w" ? room.players[0] : room.players[1];
       if (socket.id !== expectedSocketId) return;
 
-      // Update room state
       room.fen  = fen;
       room.turn = turn === "w" ? "b" : "w";
       room.moves.push(move);
 
-      // Broadcast move to opponent
       socket.to(roomId).emit("opponentMove", { move, fen, turn: room.turn });
       console.log(`[socket] move ${move} in room ${roomId}`);
     });
 
-    // ── Game over ───────────────────────────────────────────────────────────
-    socket.on("gameOver", ({ roomId, result }: { roomId: string; result: string }) => {
+    // ── Game over ─────────────────────────────────────────────────────────────
+    socket.on("gameOver", ({ roomId, result }: {
+      roomId: string;
+      result: string;
+    }) => {
       const room = rooms.get(roomId);
       if (!room) return;
       room.status = "finished";
@@ -132,7 +133,7 @@ app.prepare().then(() => {
       console.log(`[socket] game over in room ${roomId}: ${result}`);
     });
 
-    // ── Offer draw ──────────────────────────────────────────────────────────
+    // ── Draw ──────────────────────────────────────────────────────────────────
     socket.on("offerDraw", ({ roomId }: { roomId: string }) => {
       socket.to(roomId).emit("drawOffered");
     });
@@ -148,8 +149,11 @@ app.prepare().then(() => {
       socket.to(roomId).emit("drawDeclined");
     });
 
-    // ── Resign ──────────────────────────────────────────────────────────────
-    socket.on("resign", ({ roomId, color }: { roomId: string; color: "w" | "b" }) => {
+    // ── Resign ────────────────────────────────────────────────────────────────
+    socket.on("resign", ({ roomId, color }: {
+      roomId: string;
+      color:  "w" | "b";
+    }) => {
       const room = rooms.get(roomId);
       if (!room) return;
       room.status = "finished";
@@ -157,7 +161,7 @@ app.prepare().then(() => {
       io.to(roomId).emit("gameEnded", { result, reason: "resignation" });
     });
 
-    // ── Disconnect ──────────────────────────────────────────────────────────
+    // ── Disconnect ────────────────────────────────────────────────────────────
     socket.on("disconnect", () => {
       console.log(`[socket] disconnected: ${socket.id}`);
       for (const [roomId, room] of rooms.entries()) {
@@ -166,7 +170,6 @@ app.prepare().then(() => {
             room.status = "finished";
             socket.to(roomId).emit("opponentDisconnected");
           }
-          // Clean up room after delay
           setTimeout(() => { rooms.delete(roomId); }, 30000);
           break;
         }
@@ -174,7 +177,7 @@ app.prepare().then(() => {
     });
   });
 
-  httpServer.listen(3000, () => {
-    console.log("> Ready on http://localhost:3000");
+  httpServer.listen(port, () => {
+    console.log(`> Ready on http://localhost:${port}`);
   });
 });
