@@ -50,19 +50,19 @@ export default function MultiplayerGame() {
   const initialLegalSquares: Record<string, CSSProperties> = {};
   const initialSelectedSquare: Square | null               = null;
 
-  const [fen,             setFen]             = useState(gameRef.current.fen());
-  const [roomId,          setRoomId]          = useState("");
-  const [inputRoomId,     setInputRoomId]     = useState("");
-  const [playerColor,     setPlayerColor]     = useState(initialColor);
-  const [orientation,     setOrientation]     = useState(initialOrientation);
-  const [lobbyStatus,     setLobbyStatus]     = useState(initialLobby);
-  const [statusText,      setStatusText]      = useState("");
-  const [lastMove,        setLastMove]        = useState(initialLastMove);
-  const [selectedSquare,  setSelectedSquare]  = useState(initialSelectedSquare);
-  const [legalSquares,    setLegalSquares]    = useState(initialLegalSquares);
-  const [drawOffered,     setDrawOffered]     = useState(false);
-  const [gameResult,      setGameResult]      = useState("");
-  const [copiedRoom,      setCopiedRoom]      = useState(false);
+  const [fen,             setFen]             = useState<string>(gameRef.current.fen());
+  const [roomId,          setRoomId]          = useState<string>("");
+  const [inputRoomId,     setInputRoomId]     = useState<string>("");
+  const [playerColor,     setPlayerColor]     = useState<PlayerColor>(initialColor);
+  const [orientation,     setOrientation]     = useState<BoardOrientation>(initialOrientation);
+  const [lobbyStatus,     setLobbyStatus]     = useState<LobbyStatus>(initialLobby);
+  const [statusText,      setStatusText]      = useState<string>("");
+  const [lastMove,        setLastMove]        = useState<LastMove | null>(initialLastMove);
+  const [selectedSquare,  setSelectedSquare]  = useState<Square | null>(initialSelectedSquare);
+  const [legalSquares,    setLegalSquares]    = useState<Record<string, CSSProperties>>(initialLegalSquares);
+  const [drawOffered,     setDrawOffered]     = useState<boolean>(false);
+  const [gameResult,      setGameResult]      = useState<string>("");
+  const [copiedRoom,      setCopiedRoom]      = useState<boolean>(false);
   const [moveHistory,     setMoveHistory]     = useState<string[]>([]);
   const historyContainerRef = useRef<HTMLDivElement>(null);
 
