@@ -218,14 +218,20 @@ export default function GamesPage() {
 
                   <div className="mt-4 flex gap-2">
                     <button
+                      onClick={() => router.push(`/review/${selected._id}`)}
+                      className="lux-button-primary flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                    >
+                      Review game
+                    </button>
+                    <button
                       onClick={() => copyPgn(selected.pgn)}
-                      className="lux-button-secondary flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                      className="lux-button-secondary rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
                     >
                       Copy PGN
                     </button>
                     <button
                       onClick={() => downloadPgn(selected.pgn, selected._id)}
-                      className="lux-button-muted flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                      className="lux-button-muted rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
                     >
                       Download
                     </button>
