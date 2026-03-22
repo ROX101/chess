@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface SavedGame {
@@ -13,25 +13,41 @@ interface SavedGame {
   playedAt: string;
 }
 
+function getResultTone(result: string): string {
+  if (result === "1-0") return "lux-badge-emerald";
+  if (result === "0-1") return "border border-[rgba(242,125,125,0.25)] bg-[rgba(116,27,27,0.24)] text-[rgba(255,192,192,0.92)]";
+  if (result === "1/2-1/2") return "lux-badge-indigo";
+  return "lux-badge";
+}
+
 export default function GamesPage() {
   const router = useRouter();
 
-  const [games,    setGames]    = useState<SavedGame[]>([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState("");
+  const [games, setGames] = useState<SavedGame[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [selected, setSelected] = useState<SavedGame | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) { router.push("/auth"); return; }
+    if (!token) {
+      router.push("/auth");
+      return;
+    }
 
     fetch("/api/games", {
-      headers: { "Authorization": `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
       .then((data) => {
-        if (data.error) { setError(data.error); }
-        else            { setGames(data.games ?? []); }
+        if (data.error) {
+          setError(data.error);
+          return;
+        }
+
+        const nextGames: SavedGame[] = data.games ?? [];
+        setGames(nextGames);
+        setSelected(nextGames[0] ?? null);
       })
       .catch(() => setError("Failed to load games."))
       .finally(() => setLoading(false));
@@ -39,16 +55,12 @@ export default function GamesPage() {
 
   function formatDate(iso: string) {
     return new Date(iso).toLocaleDateString("en-GB", {
-      day: "numeric", month: "short", year: "numeric",
-      hour: "2-digit", minute: "2-digit",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
-  }
-
-  function resultBadge(result: string) {
-    if (result === "1-0")       return <span className="text-emerald-400 font-bold">1-0</span>;
-    if (result === "0-1")       return <span className="text-red-400 font-bold">0-1</span>;
-    if (result === "1/2-1/2")   return <span className="text-blue-400 font-bold">½-½</span>;
-    return                             <span className="text-zinc-500 font-bold">*</span>;
   }
 
   function copyPgn(pgn: string) {
@@ -57,138 +69,181 @@ export default function GamesPage() {
 
   function downloadPgn(pgn: string, id: string) {
     const blob = new Blob([pgn], { type: "text/plain" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href = url; a.download = `game-${id}.pgn`;
-    a.click(); URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `game-${id}.pgn`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white px-6 py-10">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <main className="lux-shell min-h-screen px-4 py-6 text-white sm:px-6 lg:px-8">
+      <div className="lux-ambient-orb left-[8%] top-20 h-56 w-56 bg-[rgba(124,130,255,0.12)]" />
+      <div className="lux-ambient-orb right-[10%] top-10 h-56 w-56 bg-[rgba(215,182,125,0.14)]" />
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Game History</h1>
-            <p className="text-zinc-500 text-sm mt-1">Your saved games</p>
+      <div className="mx-auto max-w-[1440px] space-y-6">
+        <header className="lux-panel rounded-[1.8rem] px-5 py-5 sm:px-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="lux-kicker">Archive</p>
+              <h1 className="lux-display mt-3 text-4xl text-white sm:text-5xl">Saved games</h1>
+              <p className="mt-3 text-sm leading-7 text-white/54">
+                Review completed games, inspect PGN, and return to play.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-sm text-white/66">
+                {loading ? "Loading" : `${games.length} saved`}
+              </span>
+              <button
+                onClick={() => router.push("/play")}
+                className="lux-button-primary rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+              >
+                Play
+              </button>
+              <button
+                onClick={() => router.push("/")}
+                className="lux-button-muted rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+              >
+                Home
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => router.push("/play")}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all active:scale-95"
-          >
-            ♟ Play
-          </button>
-        </div>
+        </header>
 
-        {/* Loading */}
-        {loading && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-12 text-center text-zinc-500">
-            Loading games…
-          </div>
-        )}
-
-        {/* Error */}
         {error && (
-          <div className="rounded-2xl border border-red-500/40 bg-red-950/30 p-6 text-center text-red-400">
+          <div className="rounded-[1.5rem] border border-[rgba(242,125,125,0.25)] bg-[rgba(116,27,27,0.24)] px-5 py-4 text-sm text-[rgba(255,192,192,0.92)]">
             {error}
           </div>
         )}
 
-        {/* Empty */}
-        {!loading && !error && games.length === 0 && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-12 text-center space-y-3">
-            <div className="text-5xl">♟</div>
-            <p className="text-zinc-400 font-medium">No saved games yet</p>
-            <p className="text-zinc-600 text-sm">Finish a game and click Save Game to store it here.</p>
-            <button
-              onClick={() => router.push("/play")}
-              className="mt-2 px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all"
-            >
-              Start Playing
-            </button>
-          </div>
-        )}
-
-        {/* Game list */}
-        {!loading && games.length > 0 && (
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,0.88fr)_380px]">
           <div className="space-y-3">
-            {games.map((game) => (
-              <div
-                key={game._id}
-                className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 space-y-3"
-              >
-                {/* Top row */}
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-2xl">♟</span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-white truncate">
-                        {game.whitePlayer} <span className="text-zinc-500">vs</span> {game.blackPlayer}
-                      </p>
-                      <p className="text-[11px] text-zinc-600">{formatDate(game.playedAt)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    {resultBadge(game.result)}
-                    <span className="text-[11px] text-zinc-600 tabular-nums">
-                      {game.moves.length} move{game.moves.length !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                </div>
+            {loading && (
+              <div className="lux-panel rounded-[1.7rem] px-5 py-10 text-center text-sm text-white/46">
+                Loading games...
+              </div>
+            )}
 
-                {/* Move list preview */}
-                <div className="rounded-xl bg-zinc-950 border border-zinc-800 px-3 py-2">
-                  <p className="text-[11px] font-mono text-zinc-500 truncate">
-                    {game.moves.slice(0, 10).join(" ")}
-                    {game.moves.length > 10 ? "…" : ""}
-                  </p>
-                </div>
+            {!loading && !error && games.length === 0 && (
+              <div className="lux-panel rounded-[1.9rem] px-6 py-12 text-center">
+                <h2 className="lux-display text-4xl text-white">No saved games</h2>
+                <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-white/52">
+                  Finish a game and use Save Game to build your archive.
+                </p>
+                <button
+                  onClick={() => router.push("/play")}
+                  className="lux-button-primary mt-6 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                >
+                  Start a new game
+                </button>
+              </div>
+            )}
 
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setSelected(selected?._id === game._id ? null : game)}
-                    className="flex-1 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold transition-all"
-                  >
-                    {selected?._id === game._id ? "Hide PGN" : "View PGN"}
-                  </button>
-                  <button
-                    onClick={() => copyPgn(game.pgn)}
-                    className="flex-1 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold transition-all"
-                  >
-                    Copy PGN
-                  </button>
-                  <button
-                    onClick={() => downloadPgn(game.pgn, game._id)}
-                    className="flex-1 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold transition-all"
-                  >
-                    Download
-                  </button>
-                </div>
+            {!loading && !error && games.length > 0 && (
+              games.map((game) => {
+                const isSelected = selected?._id === game._id;
 
-                {/* PGN expanded */}
-                {selected?._id === game._id && (
-                  <div className="rounded-xl bg-zinc-950 border border-zinc-800 px-3 py-3 max-h-48 overflow-y-auto">
-                    <p className="text-[10px] font-mono text-zinc-500 whitespace-pre-wrap break-all leading-relaxed">
-                      {game.pgn}
-                    </p>
-                  </div>
+                return (
+                  <button
+                    key={game._id}
+                    onClick={() => setSelected(game)}
+                    className={`w-full text-left transition-all duration-200 ${
+                      isSelected ? "translate-y-[-1px]" : "hover:-translate-y-0.5"
+                    }`}
+                  >
+                    <article className={`lux-panel rounded-[1.7rem] px-5 py-5 ${isSelected ? "border-[rgba(215,182,125,0.18)]" : ""}`}>
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <span className={`${getResultTone(game.result)} inline-flex rounded-full px-3 py-1 text-xs font-semibold`}>
+                              {game.result === "1/2-1/2" ? "1/2-1/2" : game.result || "*"}
+                            </span>
+                            <span className="text-xs uppercase tracking-[0.28em] text-white/28">
+                              {formatDate(game.playedAt)}
+                            </span>
+                          </div>
+
+                          <h2 className="mt-3 text-xl font-semibold text-white">
+                            {game.whitePlayer} <span className="text-white/28">vs</span> {game.blackPlayer}
+                          </h2>
+                          <p className="mt-3 font-mono text-xs leading-7 text-white/58">
+                            {game.moves.slice(0, 12).join(" ")}
+                            {game.moves.length > 12 ? " ..." : ""}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-sm text-white/42">
+                          <span>{game.moves.length} moves</span>
+                          {isSelected && <span className="lux-badge-gold inline-flex rounded-full px-3 py-1 text-xs font-semibold">Selected</span>}
+                        </div>
+                      </div>
+                    </article>
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          <aside className="xl:sticky xl:top-6 xl:self-start">
+            <section className="lux-panel-strong rounded-[1.9rem] p-5 sm:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="lux-kicker">Selected game</p>
+                  <h2 className="mt-3 text-2xl font-semibold text-white">PGN detail</h2>
+                </div>
+                {selected && (
+                  <span className={`${getResultTone(selected.result)} inline-flex rounded-full px-3 py-1 text-xs font-semibold`}>
+                    {selected.result === "1/2-1/2" ? "Draw" : selected.result}
+                  </span>
                 )}
               </div>
-            ))}
-          </div>
-        )}
 
-        {/* Back */}
-        <div className="text-center pt-4">
-          <button
-            onClick={() => router.push("/")}
-            className="text-sm text-zinc-600 hover:text-zinc-400 transition-colors"
-          >
-            ← Back to home
-          </button>
-        </div>
+              {!selected ? (
+                <p className="mt-6 text-sm leading-7 text-white/52">
+                  Select a saved game to inspect its notation.
+                </p>
+              ) : (
+                <>
+                  <div className="mt-6 rounded-[1.3rem] border border-white/8 bg-white/[0.03] px-4 py-4">
+                    <p className="text-sm text-white/72">
+                      {selected.whitePlayer} <span className="text-white/28">vs</span> {selected.blackPlayer}
+                    </p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.28em] text-white/28">
+                      {formatDate(selected.playedAt)}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => copyPgn(selected.pgn)}
+                      className="lux-button-secondary flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                    >
+                      Copy PGN
+                    </button>
+                    <button
+                      onClick={() => downloadPgn(selected.pgn, selected._id)}
+                      className="lux-button-muted flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                    >
+                      Download
+                    </button>
+                  </div>
+
+                  <div className="mt-4 rounded-[1.35rem] border border-white/8 bg-[rgba(8,8,12,0.8)] p-4">
+                    <p className="text-[11px] uppercase tracking-[0.3em] text-white/34">PGN</p>
+                    <div className="mt-4 max-h-[28rem] overflow-y-auto rounded-[1rem] border border-white/6 bg-black/20 p-4">
+                      <p className="font-mono text-[11px] leading-6 text-white/64 whitespace-pre-wrap break-all">
+                        {selected.pgn}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </section>
+          </aside>
+        </section>
       </div>
     </main>
   );

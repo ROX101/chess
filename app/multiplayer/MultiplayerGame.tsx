@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState, useEffect } from "react";
 import { Chess, Square } from "chess.js";
@@ -6,7 +6,7 @@ import { Chessboard } from "react-chessboard";
 import { io, Socket } from "socket.io-client";
 import type { CSSProperties } from "react";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type PlayerColor      = "w" | "b";
 type BoardOrientation = "white" | "black";
@@ -14,7 +14,7 @@ type LobbyStatus      = "idle" | "waiting" | "playing" | "finished";
 
 interface LastMove { from: string; to: string; }
 
-// ── Highlight styles ──────────────────────────────────────────────────────────
+// â”€â”€ Highlight styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STYLE_LAST_FROM: CSSProperties     = { background: "rgba(255,255,100,0.20)" };
 const STYLE_LAST_TO: CSSProperties       = { background: "rgba(255,255,100,0.30)" };
@@ -22,7 +22,7 @@ const STYLE_SELECTED: CSSProperties      = { background: "rgba(99,102,241,0.55)"
 const STYLE_LEGAL_EMPTY: CSSProperties   = { background: "radial-gradient(circle, rgba(99,102,241,0.55) 25%, transparent 26%)", borderRadius: "50%" };
 const STYLE_LEGAL_CAPTURE: CSSProperties = { background: "radial-gradient(circle, transparent 60%, rgba(99,102,241,0.55) 61%)", borderRadius: "50%" };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function buildSquareStyles(
   lastMove: LastMove | null,
@@ -36,13 +36,13 @@ function buildSquareStyles(
   return s;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function MultiplayerGame() {
   const gameRef    = useRef<Chess>(new Chess());
   const socketRef  = useRef<Socket | null>(null);
 
-  // ✅ Turbopack-safe initial variables
+  // âœ… Turbopack-safe initial variables
   const initialLastMove: LastMove | null                   = null;
   const initialColor: PlayerColor                          = "w";
   const initialOrientation: BoardOrientation               = "white";
@@ -98,7 +98,7 @@ export default function MultiplayerGame() {
     }
   }, [moveHistory]);
 
-  // ── Socket setup ──────────────────────────────────────────────────────────
+  // â”€â”€ Socket setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   useEffect(() => {
     const socket = io({ path: "/socket.io" });
@@ -116,7 +116,7 @@ export default function MultiplayerGame() {
       setRoomId(rid);
       roomIdRef.current = rid;
       setLobbyStatus("waiting");
-      setStatusText("Waiting for opponent to join…");
+      setStatusText("Waiting for opponent to joinâ€¦");
     });
 
     socket.on("gameStart", () => {
@@ -148,7 +148,7 @@ export default function MultiplayerGame() {
       const msg = reason === "resignation"
         ? `${result === "1-0" ? "Black" : "White"} resigned. ${result === "1-0" ? "White" : "Black"} wins!`
         : result === "1/2-1/2" ? "Draw agreed!"
-        : `Game over — ${result}`;
+        : `Game over â€” ${result}`;
       setStatusText(msg);
     });
 
@@ -172,7 +172,7 @@ export default function MultiplayerGame() {
     return () => { socket.disconnect(); };
   }, []);
 
-  // ── Game over check ───────────────────────────────────────────────────────
+  // â”€â”€ Game over check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function checkGameOver(g: Chess) {
     if (!g.isGameOver()) return;
@@ -181,10 +181,10 @@ export default function MultiplayerGame() {
     if (g.isCheckmate()) {
       result = g.turn() === "b" ? "1-0" : "0-1";
       msg    = `Checkmate! ${result === "1-0" ? "White" : "Black"} wins!`;
-    } else if (g.isStalemate())            { result = "1/2-1/2"; msg = "Stalemate — draw!"; }
-    else if (g.isThreefoldRepetition())    { result = "1/2-1/2"; msg = "Threefold repetition — draw!"; }
-    else if (g.isInsufficientMaterial())   { result = "1/2-1/2"; msg = "Insufficient material — draw!"; }
-    else if (g.isDraw())                   { result = "1/2-1/2"; msg = "50-move rule — draw!"; }
+    } else if (g.isStalemate())            { result = "1/2-1/2"; msg = "Stalemate â€” draw!"; }
+    else if (g.isThreefoldRepetition())    { result = "1/2-1/2"; msg = "Threefold repetition â€” draw!"; }
+    else if (g.isInsufficientMaterial())   { result = "1/2-1/2"; msg = "Insufficient material â€” draw!"; }
+    else if (g.isDraw())                   { result = "1/2-1/2"; msg = "50-move rule â€” draw!"; }
 
     setGameResult(result);
     setStatusText(msg);
@@ -206,7 +206,7 @@ export default function MultiplayerGame() {
     target.play().catch(() => {});
   }
 
-  // ── Move handling ─────────────────────────────────────────────────────────
+  // â”€â”€ Move handling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function attemptMove(from: Square, to: Square): boolean {
     const g = gameRef.current;
@@ -239,7 +239,7 @@ export default function MultiplayerGame() {
     return attemptMove(source, target);
   }
 
-  // ── Square click ──────────────────────────────────────────────────────────
+  // â”€â”€ Square click â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function onSquareClick(square: Square) {
     const g = gameRef.current;
@@ -270,18 +270,18 @@ export default function MultiplayerGame() {
 
   function clearSelection() { setSelectedSquare(null); setLegalSquares({}); }
 
-  // ── Lobby actions ─────────────────────────────────────────────────────────
+  // â”€â”€ Lobby actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function handleQuickMatch() {
     setLobbyStatus("waiting");
-    setStatusText("Finding a game…");
+    setStatusText("Finding a gameâ€¦");
     socketRef.current?.emit("joinGame");
   }
 
   function handleJoinRoom() {
     if (!inputRoomId.trim()) return;
     setLobbyStatus("waiting");
-    setStatusText(`Joining room ${inputRoomId.toUpperCase()}…`);
+    setStatusText(`Joining room ${inputRoomId.toUpperCase()}â€¦`);
     socketRef.current?.emit("joinGame", inputRoomId.toUpperCase());
   }
 
@@ -292,7 +292,11 @@ export default function MultiplayerGame() {
     });
   }
 
-  // ── In-game actions ───────────────────────────────────────────────────────
+  function handleToggleMute() {
+    setIsMuted((prev) => !prev);
+  }
+
+  // â”€â”€ In-game actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function handleResign() {
     socketRef.current?.emit("resign", { roomId, color: playerColor });
@@ -300,7 +304,7 @@ export default function MultiplayerGame() {
 
   function handleOfferDraw() {
     socketRef.current?.emit("offerDraw", { roomId });
-    setStatusText("Draw offered…");
+    setStatusText("Draw offeredâ€¦");
   }
 
   function handleAcceptDraw() {
@@ -325,7 +329,7 @@ export default function MultiplayerGame() {
     clearSelection();
   }
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  // â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const isMyTurn        = gameRef.current.turn() === playerColor && lobbyStatus === "playing";
   const customStyles    = buildSquareStyles(lastMove, selectedSquare, legalSquares);
@@ -338,283 +342,333 @@ export default function MultiplayerGame() {
     return acc;
   }, pairedMovesInit);
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center px-6 py-10">
-      <section className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
+    <main className="lux-shell min-h-screen px-4 py-5 text-white sm:px-6 lg:px-8">
+      <section className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1.12fr)_380px] lg:items-start">
 
-        {/* ── Board ──────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-3 items-center w-full">
-
-          {/* Opponent label */}
-          <div className="w-full max-w-[600px] flex items-center justify-between min-h-[36px] px-1">
-            <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${lobbyStatus === "playing" ? "bg-green-400" : "bg-zinc-600"}`} />
-              <span className="text-[11px] text-zinc-500 uppercase tracking-widest">
-                {playerColor === "w" ? "Black" : "White"}
-              </span>
-            </div>
-            {lobbyStatus === "playing" && !isMyTurn && (
-              <span className="text-[11px] text-indigo-400 animate-pulse">thinking…</span>
-            )}
-          </div>
-
-          {/* Board */}
-          <div className="w-full max-w-[600px]">
-            <Chessboard
-              id="MultiplayerBoard"
-              position={fen}
-              onPieceDrop={onPieceDrop}
-              onSquareClick={onSquareClick}
-              boardOrientation={orientation}
-              arePiecesDraggable={isMyTurn && lobbyStatus === "playing"}
-              customSquareStyles={customStyles}
-              customBoardStyle={{
-                borderRadius: "8px",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-                opacity: !isMyTurn && lobbyStatus === "playing" ? 0.85 : 1,
-                transition: "opacity 0.2s ease",
-              }}
-            />
-          </div>
-
-          {/* Your label */}
-          <div className="w-full max-w-[600px] flex items-center justify-between min-h-[36px] px-1">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-400" />
-              <span className="text-[11px] text-zinc-400 uppercase tracking-widest">
-                You ({colorLabel})
-              </span>
-            </div>
-            {isMyTurn && (
-              <span className="text-[11px] text-emerald-400 font-semibold">Your turn</span>
-            )}
-          </div>
-        </div>
-
-        {/* ── Sidebar ──────────────────────────────────────────────── */}
-        <aside className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-2xl space-y-4">
-
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tight">Multiplayer</h1>
-            <a href="/play"
-              className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors">
-              ← Solo
-            </a>
-          </div>
-
-          {/* ── LOBBY ─────────────────────────────────────────────── */}
-          {lobbyStatus === "idle" && (
-            <div className="space-y-4">
-              <p className="text-sm text-zinc-400">
-                Play chess against a real opponent in real time.
-              </p>
-
-              {/* Quick match */}
-              <button
-                onClick={handleQuickMatch}
-                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold transition-all"
-              >
-                ⚡ Quick Match
-              </button>
-
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-zinc-800" />
-                <span className="text-[11px] text-zinc-600">or join with code</span>
-                <div className="flex-1 h-px bg-zinc-800" />
+        <div className="space-y-5">
+          <header className="lux-panel-strong rounded-[2rem] p-6 sm:p-8">
+            <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-2xl">
+                <p className="lux-kicker">Live rooms</p>
+                <h1 className="lux-display mt-4 text-5xl text-white sm:text-6xl">Match room.</h1>
+                <p className="mt-4 max-w-xl text-sm leading-7 text-white/58 sm:text-base">
+                  Join, share a code, and play live with the board kept in focus.
+                </p>
               </div>
 
-              {/* Join by room ID */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`${lobbyStatus === "playing" ? "lux-badge-emerald" : lobbyStatus === "waiting" ? "lux-badge-indigo" : "lux-badge"} inline-flex rounded-full px-4 py-2 text-sm font-semibold`}>
+                  {lobbyStatus === "playing" ? "Match live" : lobbyStatus === "waiting" ? "Finding opponent" : "Lobby"}
+                </span>
+                <a href="/" className="lux-button-muted rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5">
+                  Home
+                </a>
+                <a href="/play" className="lux-button-secondary rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5">
+                  Solo
+                </a>
+              </div>
+            </div>
+          </header>
+
+          <section className="lux-stage p-4 sm:p-5">
+            <div className="mx-auto max-w-[612px] space-y-4">
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div className="rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-white/34">Opponent</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <span className={`h-2.5 w-2.5 rounded-full ${lobbyStatus === "playing" ? "bg-emerald-400" : "bg-white/24"}`} />
+                    <span className="text-sm text-white/78">{playerColor === "w" ? "Black pieces" : "White pieces"}</span>
+                  </div>
+                </div>
+                {!isMyTurn && lobbyStatus === "playing" && (
+                  <span className="lux-badge-indigo inline-flex rounded-full px-4 py-2 text-sm font-semibold">
+                    Opponent thinking
+                  </span>
+                )}
+              </div>
+
+              <div className="lux-board-frame">
+                <div className="rounded-[1.45rem] border border-white/8 bg-[rgba(6,6,10,0.72)] p-3 sm:p-4">
+                  <Chessboard
+                    id="MultiplayerBoard"
+                    position={fen}
+                    onPieceDrop={onPieceDrop}
+                    onSquareClick={onSquareClick}
+                    boardOrientation={orientation}
+                    arePiecesDraggable={isMyTurn && lobbyStatus === "playing"}
+                    customSquareStyles={customStyles}
+                    customBoardStyle={{
+                      borderRadius: "18px",
+                      boxShadow: "0 30px 80px rgba(0,0,0,0.42)",
+                      opacity: !isMyTurn && lobbyStatus === "playing" ? 0.88 : 1,
+                      transition: "opacity 0.2s ease, transform 0.2s ease",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div className="rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-white/34">You</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--gold-soft)]" />
+                    <span className="text-sm text-white/82">{colorLabel} pieces</span>
+                  </div>
+                </div>
+                {isMyTurn && (
+                  <span className="lux-badge-gold inline-flex rounded-full px-4 py-2 text-sm font-semibold">
+                    Your move
+                  </span>
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside className="space-y-4">
+
+          <section className="lux-panel-strong rounded-[2rem] p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="lux-kicker">Room console</p>
+                <h2 className="mt-4 text-2xl font-semibold text-white">Multiplayer controls</h2>
+                <p className="mt-2 text-sm leading-6 text-white/56">
+                  Create a room, join by code, and manage the match from one quiet rail.
+                </p>
+              </div>
+              <button
+                onClick={handleToggleMute}
+                title={isMuted ? "Unmute" : "Mute"}
+                className="lux-button-muted rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+              >
+                {isMuted ? "Muted" : "Sound"}
+              </button>
+            </div>
+          </section>
+
+          {lobbyStatus === "idle" && (
+            <section className="lux-panel rounded-[1.8rem] p-4">
+              <p className="lux-kicker">Start a room</p>
+              <p className="mt-4 text-sm leading-7 text-white/60">
+                Quick match drops you into the queue. Room code entry lets you jump straight into a private game.
+              </p>
+
+              <button
+                onClick={handleQuickMatch}
+                className="lux-button-primary mt-5 w-full rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+              >
+                Quick Match
+              </button>
+
+              <div className="mt-5 flex items-center gap-3">
+                <div className="h-px flex-1 bg-white/8" />
+                <span className="text-[11px] uppercase tracking-[0.3em] text-white/28">Room code</span>
+                <div className="h-px flex-1 bg-white/8" />
+              </div>
+
+              <div className="mt-5 flex gap-2">
                 <input
                   type="text"
                   value={inputRoomId}
                   onChange={(e) => setInputRoomId(e.target.value.toUpperCase())}
                   onKeyDown={(e) => { if (e.key === "Enter") handleJoinRoom(); }}
-                  placeholder="Room code (e.g. AB12CD)"
+                  placeholder="AB12CD"
                   maxLength={6}
-                  className="flex-1 rounded-xl bg-zinc-950 border border-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors font-mono"
+                  className="lux-input flex-1 rounded-[1.2rem] px-4 py-3 text-sm font-mono text-white placeholder:text-white/30"
                 />
                 <button
                   onClick={handleJoinRoom}
                   disabled={!inputRoomId.trim()}
-                  className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 disabled:opacity-30 text-white text-sm font-semibold transition-all"
+                  className="lux-button-secondary rounded-[1.2rem] px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-35"
                 >
                   Join
                 </button>
               </div>
 
               {statusText && (
-                <p className="text-sm text-red-400 text-center">{statusText}</p>
+                <p className="mt-4 text-sm text-[rgba(255,192,192,0.92)]">{statusText}</p>
               )}
-            </div>
+            </section>
           )}
 
-          {/* ── WAITING ───────────────────────────────────────────── */}
           {lobbyStatus === "waiting" && (
-            <div className="space-y-4">
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-center space-y-3">
-                <div className="flex justify-center gap-1">
-                  {[0,1,2].map((i) => (
-                    <span key={i} className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce"
-                      style={{ animationDelay: `${i * 0.15}s` }} />
+            <section className="lux-panel rounded-[1.8rem] p-4">
+              <div className="rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-4 py-4 text-center">
+                <div className="mx-auto flex w-fit gap-1">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="h-2.5 w-2.5 rounded-full bg-[var(--indigo-soft)] animate-bounce"
+                      style={{ animationDelay: `${i * 0.15}s` }}
+                    />
                   ))}
                 </div>
-                <p className="text-sm text-zinc-300 font-medium">{statusText}</p>
+                <p className="mt-4 text-sm font-medium text-white/82">{statusText}</p>
               </div>
 
-              {/* Room code to share */}
               {roomId && (
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
-                    Share room code
-                  </p>
-                  <div className="flex gap-2">
-                    <div className="flex-1 rounded-xl bg-zinc-950 border border-zinc-800 px-3 py-2 font-mono text-lg text-white text-center tracking-widest">
+                <div className="mt-4 rounded-[1.35rem] border border-white/8 bg-[rgba(8,8,12,0.76)] p-4">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-white/34">Share room code</p>
+                  <div className="mt-4 flex gap-2">
+                    <div className="lux-input flex-1 rounded-[1.2rem] px-4 py-3 text-center font-mono text-lg tracking-[0.25em] text-white">
                       {roomId}
                     </div>
                     <button
                       onClick={handleCopyRoomId}
-                      className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-white text-sm font-semibold transition-all"
+                      className="lux-button-secondary rounded-[1.2rem] px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
                     >
-                      {copiedRoom ? "✓" : "Copy"}
+                      {copiedRoom ? "Copied" : "Copy"}
                     </button>
                   </div>
-                  <p className="text-[11px] text-zinc-600 text-center">
-                    Share this code with your opponent
-                  </p>
                 </div>
               )}
 
               <button
                 onClick={handlePlayAgain}
-                className="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-sm font-semibold transition-all"
+                className="lux-button-muted mt-4 w-full rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
               >
                 Cancel
               </button>
-            </div>
+            </section>
           )}
 
-          {/* ── PLAYING ───────────────────────────────────────────── */}
           {lobbyStatus === "playing" && (
-            <div className="space-y-4">
-
-              {/* Room ID */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 flex items-center justify-between">
-                <span className="text-[11px] text-zinc-500 uppercase tracking-widest">Room</span>
-                <span className="font-mono text-sm text-zinc-300 tracking-widest">{roomId}</span>
-              </div>
-
-              {/* Status */}
-              <div className={`rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${
-                isMyTurn
-                  ? "border-emerald-500/60 bg-emerald-950/30 text-emerald-300"
-                  : "border-zinc-700 bg-zinc-950 text-zinc-400"
-              }`}>
-                {isMyTurn ? "⚡ Your turn" : "⏳ Opponent's turn"}
-              </div>
-
-              {/* Draw offer received */}
-              {drawOffered && (
-                <div className="rounded-xl border border-yellow-500/40 bg-yellow-950/20 p-4 space-y-3">
-                  <p className="text-sm text-yellow-300 font-medium text-center">
-                    Opponent offers a draw
-                  </p>
-                  <div className="flex gap-2">
-                    <button onClick={handleAcceptDraw}
-                      className="flex-1 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold transition-all">
-                      Accept
-                    </button>
-                    <button onClick={handleDeclineDraw}
-                      className="flex-1 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-semibold transition-all">
-                      Decline
-                    </button>
-                  </div>
+            <>
+              <section className="lux-panel rounded-[1.8rem] p-4">
+                <div className="flex items-center justify-between">
+                  <p className="lux-kicker">Live room</p>
+                  <span className="lux-badge-emerald inline-flex rounded-full px-3 py-1 text-xs font-semibold">Active</span>
                 </div>
-              )}
-
-              {statusText && !drawOffered && (
-                <p className="text-[11px] text-zinc-500 text-center">{statusText}</p>
-              )}
-
-              {/* In-game actions */}
-              <div className="flex gap-2">
-                <button onClick={handleOfferDraw}
-                  className="flex-1 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-semibold transition-all">
-                  ½ Draw
-                </button>
-                <button onClick={handleResign}
-                  className="flex-1 py-2 rounded-xl bg-red-900/50 hover:bg-red-800/60 text-red-300 text-xs font-semibold transition-all border border-red-800/40">
-                  🏳 Resign
-                </button>
-              </div>
-
-              {/* Move history */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
-                    Moves
-                  </p>
-                  {moveHistory.length > 0 && (
-                    <span className="text-[11px] text-zinc-600 tabular-nums">
-                      {moveHistory.length}
-                    </span>
-                  )}
+                <div className="mt-4 rounded-[1.35rem] border border-white/8 bg-white/[0.03] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-white/34">Room code</p>
+                  <p className="mt-2 font-mono text-lg tracking-[0.24em] text-white/82">{roomId}</p>
                 </div>
-                {pairedMoves.length === 0
-                  ? <p className="text-xs text-zinc-600 italic">No moves yet.</p>
-                  : (
-                    <div ref={historyContainerRef} className="max-h-48 overflow-y-auto pr-1 space-y-0.5">
-                      {pairedMoves.map(([white, black], idx) => (
-                        <div key={idx} className={`grid grid-cols-[28px_1fr_1fr] gap-1 text-sm rounded px-1 py-0.5 ${
-                          idx === pairedMoves.length - 1 ? "bg-zinc-800/60" : "hover:bg-zinc-900"
-                        }`}>
-                          <span className="text-zinc-600 tabular-nums">{idx + 1}.</span>
-                          <span className="text-zinc-200 font-mono">{white}</span>
-                          <span className="text-zinc-400 font-mono">{black ?? ""}</span>
-                        </div>
-                      ))}
+                <div className={`mt-4 rounded-[1.35rem] border px-4 py-4 text-sm font-medium transition-colors ${
+                  isMyTurn
+                    ? "border-[rgba(70,196,153,0.25)] bg-[rgba(70,196,153,0.12)] text-[rgba(189,246,227,0.94)]"
+                    : "border-white/8 bg-white/[0.03] text-white/62"
+                }`}>
+                  {isMyTurn ? "Your turn" : "Opponent's turn"}
+                </div>
+
+                {drawOffered && (
+                  <div className="mt-4 rounded-[1.35rem] border border-[rgba(215,182,125,0.22)] bg-[rgba(215,182,125,0.1)] p-4">
+                    <p className="text-sm font-medium text-[var(--gold-soft)]">Opponent offers a draw.</p>
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        onClick={handleAcceptDraw}
+                        className="lux-button-primary flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={handleDeclineDraw}
+                        className="lux-button-muted flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                      >
+                        Decline
+                      </button>
                     </div>
-                  )}
-              </div>
-            </div>
+                  </div>
+                )}
+
+                {statusText && !drawOffered && (
+                  <p className="mt-4 text-sm text-white/48">{statusText}</p>
+                )}
+              </section>
+
+              <section className="lux-panel rounded-[1.8rem] p-4">
+                <p className="lux-kicker">Match actions</p>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={handleOfferDraw}
+                    className="lux-button-secondary flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                  >
+                    Offer draw
+                  </button>
+                  <button
+                    onClick={handleResign}
+                    className="rounded-full border border-[rgba(242,125,125,0.24)] bg-[rgba(116,27,27,0.24)] px-4 py-3 text-sm font-semibold text-[rgba(255,196,196,0.92)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[rgba(116,27,27,0.34)]"
+                  >
+                    Resign
+                  </button>
+                </div>
+              </section>
+
+              <section className="lux-panel rounded-[1.8rem] p-4">
+                <div className="flex items-center justify-between">
+                  <p className="lux-kicker">Move history</p>
+                  {moveHistory.length > 0 && <span className="text-xs text-white/36">{moveHistory.length} moves</span>}
+                </div>
+                {pairedMoves.length === 0 ? (
+                  <p className="mt-4 text-sm italic text-white/34">No moves yet.</p>
+                ) : (
+                  <div ref={historyContainerRef} className="mt-4 max-h-60 space-y-1 overflow-y-auto pr-1">
+                    {pairedMoves.map(([white, black], idx) => (
+                      <div
+                        key={idx}
+                        className={`grid grid-cols-[34px_1fr_1fr] gap-2 rounded-[1rem] px-3 py-2 text-sm transition-colors ${
+                          idx === pairedMoves.length - 1 ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
+                        }`}
+                      >
+                        <span className="font-mono text-white/32">{idx + 1}.</span>
+                        <span className="font-mono text-white/82">{white}</span>
+                        <span className="font-mono text-white/54">{black ?? ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className="lux-panel rounded-[1.8rem] p-4">
+                <p className="lux-kicker">Legend</p>
+                <div className="mt-4 space-y-2">
+                  {[
+                    { style: { background: "rgba(99,102,241,0.55)" }, label: "Selected", round: false },
+                    { style: { background: "radial-gradient(circle, rgba(99,102,241,0.55) 25%, transparent 26%)" }, label: "Legal move", round: true },
+                    { style: { background: "radial-gradient(circle, transparent 60%, rgba(99,102,241,0.55) 61%)" }, label: "Capture", round: true },
+                    { style: { background: "rgba(255,255,100,0.30)" }, label: "Last move", round: false },
+                  ].map(({ style, label, round }) => (
+                    <div key={label} className="flex items-center gap-3 text-sm text-white/56">
+                      <span className={`h-4 w-4 shrink-0 ${round ? "rounded-full" : "rounded-sm"}`} style={style} />
+                      {label}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </>
           )}
 
-          {/* ── FINISHED ──────────────────────────────────────────── */}
           {lobbyStatus === "finished" && (
-            <div className="space-y-4">
-              <div className={`rounded-xl border px-4 py-4 text-center space-y-1 ${
+            <section className="lux-panel rounded-[1.8rem] p-4">
+              <div className={`rounded-[1.35rem] border px-4 py-5 text-center ${
                 gameResult === "1/2-1/2"
-                  ? "border-blue-500/40 bg-blue-950/20 text-blue-300"
+                  ? "border-[rgba(124,130,255,0.28)] bg-[rgba(124,130,255,0.12)] text-[rgba(229,232,255,0.94)]"
                   : (gameResult === "1-0" && playerColor === "w") || (gameResult === "0-1" && playerColor === "b")
-                  ? "border-emerald-500/40 bg-emerald-950/20 text-emerald-300"
-                  : "border-red-500/40 bg-red-950/20 text-red-300"
+                    ? "border-[rgba(70,196,153,0.25)] bg-[rgba(70,196,153,0.12)] text-[rgba(189,246,227,0.94)]"
+                    : "border-[rgba(242,125,125,0.24)] bg-[rgba(116,27,27,0.24)] text-[rgba(255,196,196,0.92)]"
               }`}>
-                <p className="text-2xl font-bold">
+                <p className="lux-display text-4xl">
                   {gameResult === "1/2-1/2"
-                    ? "½ Draw"
+                    ? "Draw"
                     : (gameResult === "1-0" && playerColor === "w") || (gameResult === "0-1" && playerColor === "b")
-                    ? "🏆 You Won!"
-                    : "You Lost"}
+                      ? "Victory"
+                      : "Defeat"}
                 </p>
-                <p className="text-sm opacity-80">{statusText}</p>
+                <p className="mt-3 text-sm opacity-80">{statusText}</p>
               </div>
 
-              {/* Move history after game */}
               {pairedMoves.length > 0 && (
-                <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 mb-3">
-                    Game moves
-                  </p>
-                  <div ref={historyContainerRef} className="max-h-40 overflow-y-auto pr-1 space-y-0.5">
+                <div className="mt-4 rounded-[1.35rem] border border-white/8 bg-[rgba(8,8,12,0.76)] p-4">
+                  <p className="text-[11px] uppercase tracking-[0.3em] text-white/34">Final moves</p>
+                  <div ref={historyContainerRef} className="mt-4 max-h-44 space-y-1 overflow-y-auto pr-1">
                     {pairedMoves.map(([white, black], idx) => (
-                      <div key={idx} className="grid grid-cols-[28px_1fr_1fr] gap-1 text-sm rounded px-1 py-0.5 hover:bg-zinc-900">
-                        <span className="text-zinc-600 tabular-nums">{idx + 1}.</span>
-                        <span className="text-zinc-200 font-mono">{white}</span>
-                        <span className="text-zinc-400 font-mono">{black ?? ""}</span>
+                      <div key={idx} className="grid grid-cols-[34px_1fr_1fr] gap-2 rounded-[1rem] px-3 py-2 text-sm hover:bg-white/[0.04]">
+                        <span className="font-mono text-white/32">{idx + 1}.</span>
+                        <span className="font-mono text-white/82">{white}</span>
+                        <span className="font-mono text-white/54">{black ?? ""}</span>
                       </div>
                     ))}
                   </div>
@@ -623,36 +677,21 @@ export default function MultiplayerGame() {
 
               <button
                 onClick={handlePlayAgain}
-                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold transition-all"
+                className="lux-button-primary mt-4 w-full rounded-full px-5 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
               >
                 Play Again
               </button>
-              <a href="/play"
-                className="block w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-semibold text-center transition-all">
+              <a
+                href="/play"
+                className="lux-button-muted mt-2 block w-full rounded-full px-5 py-3 text-center text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+              >
                 Back to Solo
               </a>
-            </div>
-          )}
-
-          {/* Legend */}
-          {lobbyStatus === "playing" && (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 mb-1">Legend</p>
-              {[
-                { style: { background: "rgba(99,102,241,0.55)" },           label: "Selected",      round: false },
-                { style: { background: "radial-gradient(circle, rgba(99,102,241,0.55) 25%, transparent 26%)" }, label: "Legal move",  round: true },
-                { style: { background: "radial-gradient(circle, transparent 60%, rgba(99,102,241,0.55) 61%)" }, label: "Capture",     round: true },
-                { style: { background: "rgba(255,255,100,0.30)" },           label: "Last move",     round: false },
-              ].map(({ style, label, round }) => (
-                <div key={label} className="flex items-center gap-2 text-xs text-zinc-400">
-                  <span className={`w-4 h-4 shrink-0 ${round ? "rounded-full" : "rounded-sm"}`} style={style} />
-                  {label}
-                </div>
-              ))}
-            </div>
+            </section>
           )}
         </aside>
       </section>
     </main>
   );
 }
+

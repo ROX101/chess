@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useRef, useState, useEffect } from "react";
 import { Chess, Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import type { CSSProperties } from "react";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// -- Types --------------------------------------------------------------------
 
 type StatusVariant    = "neutral" | "check" | "draw" | "over";
 type GameMode         = "local" | "vs-computer";
@@ -21,7 +21,7 @@ interface LastMove       { from: string; to: string; }
 interface TimeOption     { label: string; seconds: number; }
 interface EvalState      { type: "cp" | "mate" | null; value: number; }
 
-// ── Opening book ──────────────────────────────────────────────────────────────
+// -- Opening book --------------------------------------------------------------
 
 const OPENING_BOOK: Record<string, string[]> = {
   "e4":               ["e5", "c5", "e6", "c6", "d6", "d5"],
@@ -72,10 +72,10 @@ function getBookMove(g: Chess): string | null {
   return options[Math.floor(Math.random() * options.length)];
 }
 
-// ── Constants ────────────────────────────────────────────────────────────────
+// -- Constants ----------------------------------------------------------------
 
 const TIME_OPTIONS: TimeOption[] = [
-  { label: "∞",     seconds: 0   },
+  { label: "8",     seconds: 0   },
   { label: "1 min", seconds: 60  },
   { label: "3 min", seconds: 180 },
   { label: "5 min", seconds: 300 },
@@ -83,15 +83,15 @@ const TIME_OPTIONS: TimeOption[] = [
 ];
 
 const VARIANT_STYLES: Record<StatusVariant, string> = {
-  neutral: "border-zinc-700 bg-zinc-950 text-zinc-100",
-  check:   "border-yellow-500/60 bg-yellow-950/40 text-yellow-300",
-  draw:    "border-blue-500/60 bg-blue-950/40 text-blue-300",
-  over:    "border-red-500/60 bg-red-950/40 text-red-300",
+  neutral: "border-white/10 bg-white/[0.04] text-white/88",
+  check:   "border-[rgba(215,182,125,0.28)] bg-[rgba(104,81,39,0.18)] text-[rgba(244,228,193,0.94)]",
+  draw:    "border-[rgba(124,130,255,0.24)] bg-[rgba(52,57,112,0.18)] text-[rgba(226,229,255,0.92)]",
+  over:    "border-[rgba(214,103,103,0.22)] bg-[rgba(122,38,38,0.2)] text-[rgba(255,214,214,0.92)]",
 };
 
 const PIECE_SYMBOLS: Record<string, string> = {
-  p: "♟", n: "♞", b: "♝", r: "♜", q: "♛",
-  P: "♙", N: "♘", B: "♗", R: "♖", Q: "♕",
+  p: "?", n: "?", b: "?", r: "?", q: "?",
+  P: "?", N: "?", B: "?", R: "?", Q: "?",
 };
 
 const MATERIAL_VALUE: Record<string, number> = {
@@ -107,7 +107,7 @@ const STYLE_LEGAL_CAPTURE: CSSProperties = { background: "radial-gradient(circle
 const BOT_DELAY_MS    = 500;
 const EXPERT_MOVETIME = 1500;
 
-// ── Eval helpers ──────────────────────────────────────────────────────────────
+// -- Eval helpers --------------------------------------------------------------
 
 function parseEvalLine(line: string, turnToMove: "w" | "b"): EvalState | null {
   if (!line.includes("score")) return null;
@@ -141,17 +141,19 @@ function getEvalDisplay(ev: EvalState): string {
   return (pawns >= 0 ? "+" : "") + pawns.toFixed(1);
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// -- Sub-components ------------------------------------------------------------
 
 interface ClockBadgeProps { time: number; isActive: boolean; isTimedOut: boolean; }
 function ClockBadge({ time, isActive, isTimedOut }: ClockBadgeProps) {
   const m = Math.floor(time / 60);
   const s = time % 60;
   return (
-    <div className={`tabular-nums font-mono text-sm font-bold px-3 py-1 rounded-lg border transition-all ${
-      isTimedOut  ? "border-red-500/60 bg-red-950/40 text-red-400"
-      : isActive  ? "border-indigo-500/60 bg-indigo-950/40 text-indigo-200"
-      :             "border-zinc-800 bg-zinc-900 text-zinc-500"
+    <div className={`tabular-nums rounded-full border px-3.5 py-1.5 font-mono text-sm font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all ${
+      isTimedOut
+        ? "border-[rgba(214,103,103,0.28)] bg-[rgba(122,38,38,0.24)] text-[rgba(255,215,215,0.94)]"
+        : isActive
+          ? "border-[rgba(124,130,255,0.34)] bg-[rgba(62,67,131,0.26)] text-[rgba(236,238,255,0.96)]"
+          : "border-white/10 bg-white/[0.04] text-white/46"
     }`}>
       {m}:{s.toString().padStart(2, "0")}
     </div>
@@ -162,13 +164,13 @@ interface EvalBarProps { whitePercent: number; display: string; orientation: Boa
 function EvalBar({ whitePercent, display, orientation }: EvalBarProps) {
   const flipped = orientation === "black";
   return (
-    <div className="w-5 self-stretch flex-shrink-0 rounded-lg overflow-hidden border border-zinc-700 relative bg-zinc-800 cursor-default select-none">
+    <div className="relative w-5 flex-shrink-0 self-stretch cursor-default select-none overflow-hidden rounded-full border border-white/10 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
       <div
-        className="absolute left-0 right-0 bg-zinc-200 transition-all duration-500 ease-out"
+        className="absolute left-0 right-0 bg-[rgba(242,236,225,0.9)] transition-all duration-500 ease-out"
         style={flipped ? { top: 0, height: `${whitePercent}%` } : { bottom: 0, height: `${whitePercent}%` }}
       />
       <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-        <span className="font-mono font-bold text-zinc-500 leading-none" style={{ fontSize: "7px", writingMode: "vertical-lr" }}>
+        <span className="font-mono font-bold leading-none text-white/45" style={{ fontSize: "7px", writingMode: "vertical-lr" }}>
           {display}
         </span>
       </div>
@@ -176,7 +178,7 @@ function EvalBar({ whitePercent, display, orientation }: EvalBarProps) {
   );
 }
 
-// ── PGN helpers ───────────────────────────────────────────────────────────────
+// -- PGN helpers ---------------------------------------------------------------
 
 function getTodayPgnDate(): string {
   const d = new Date();
@@ -221,7 +223,7 @@ async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
-// ── Bot helpers ───────────────────────────────────────────────────────────────
+// -- Bot helpers ---------------------------------------------------------------
 
 function pickRandom<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -268,7 +270,7 @@ function pickBotMove(g: Chess, difficulty: BotDifficulty, playerColor: PlayerCol
   return "";
 }
 
-// ── Game helpers ──────────────────────────────────────────────────────────────
+// -- Game helpers --------------------------------------------------------------
 
 function deriveStatus(
   g: Chess, isBotThinking: boolean, timedOut: TimedOut,
@@ -319,12 +321,12 @@ function buildSquareStyles(
   return s;
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+// -- Component ----------------------------------------------------------------
 
 export default function ChessGame() {
   const gameRef = useRef<Chess>(new Chess());
 
-  // ✅ Turbopack-safe: all complex types on initial variables
+  // ? Turbopack-safe: all complex types on initial variables
   const initialStatus: StatusState                          = { text: "White's turn", variant: "neutral" };
   const initialLastMove: LastMove | null                    = null;
   const initialCaptured: CapturedPieces                     = { white: [], black: [] };
@@ -363,7 +365,7 @@ export default function ChessGame() {
   const [gameSaved,        setGameSaved]        = useState<boolean>(false);
   const [gameSaving,       setGameSaving]       = useState<boolean>(false);
 
-  // ── Refs ──────────────────────────────────────────────────────────────────
+  // -- Refs ------------------------------------------------------------------
   const difficultyRef       = useRef<BotDifficulty>("easy");
   const gameModeRef         = useRef<GameMode>("local");
   const playerColorRef      = useRef<PlayerColor>("w");
@@ -382,7 +384,7 @@ export default function ChessGame() {
   const sndCheck            = useRef<HTMLAudioElement | null>(null);
   const sndCheckmate        = useRef<HTMLAudioElement | null>(null);
 
-  // ── Effects ───────────────────────────────────────────────────────────────
+  // -- Effects ---------------------------------------------------------------
 
   useEffect(() => {
     sndMove.current      = new Audio("/move.mp3");
@@ -455,7 +457,7 @@ export default function ChessGame() {
       setStatusState(deriveStatus(gameRef.current, false, timedOutColor, gameModeRef.current, playerColorRef.current));
   }, [timedOutColor]);
 
-  // ── Sound ─────────────────────────────────────────────────────────────────
+  // -- Sound -----------------------------------------------------------------
 
   function playMoveSound(isCapture: boolean, afterG: Chess) {
     if (isMutedRef.current) return;
@@ -469,7 +471,7 @@ export default function ChessGame() {
     target.play().catch(() => {});
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // -- Helpers ---------------------------------------------------------------
 
   function resetClocksTo(seconds: number) {
     if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
@@ -501,7 +503,7 @@ export default function ChessGame() {
     return gameRef.current.turn() !== playerColorRef.current;
   }
 
-  // ── Expert bot ────────────────────────────────────────────────────────────
+  // -- Expert bot ------------------------------------------------------------
 
   function scheduleExpertMove(fenString: string) {
     const g        = gameRef.current;
@@ -574,7 +576,7 @@ export default function ChessGame() {
     workerRef.current.postMessage(`go movetime ${EXPERT_MOVETIME}`);
   }
 
-  // ── Random / heuristic bot ────────────────────────────────────────────────
+  // -- Random / heuristic bot ------------------------------------------------
 
   function scheduleRandomBotMove() {
     setIsBotThinking(true);
@@ -595,7 +597,7 @@ export default function ChessGame() {
     else scheduleRandomBotMove();
   }
 
-  // ── Move execution ────────────────────────────────────────────────────────
+  // -- Move execution --------------------------------------------------------
 
   function attemptMove(from: Square, to: Square): boolean {
     if (timedOutRef.current !== null) return false;
@@ -612,7 +614,7 @@ export default function ChessGame() {
     } catch { return false; }
   }
 
-  // ── Square click ──────────────────────────────────────────────────────────
+  // -- Square click ----------------------------------------------------------
 
   function onSquareClick(square: Square) {
     const g = gameRef.current;
@@ -646,7 +648,7 @@ export default function ChessGame() {
     return attemptMove(sourceSquare, targetSquare);
   }
 
-  // ── Controls ──────────────────────────────────────────────────────────────
+  // -- Controls --------------------------------------------------------------
 
   function handleUndo() {
     if (isBotThinking || timeControl > 0) return;
@@ -701,7 +703,7 @@ export default function ChessGame() {
   function handleFlipBoard()  { setBoardOrientation((prev) => prev === "white" ? "black" : "white"); }
   function handleToggleMute() { setIsMuted((prev) => !prev); }
 
-  // ── Auth ──────────────────────────────────────────────────────────────────
+  // -- Auth ------------------------------------------------------------------
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -709,7 +711,7 @@ export default function ChessGame() {
     setUserEmail("");
   }
 
-  // ── Save game ─────────────────────────────────────────────────────────────
+  // -- Save game -------------------------------------------------------------
 
   async function handleSaveGame() {
     const token = localStorage.getItem("token");
@@ -736,7 +738,7 @@ export default function ChessGame() {
     finally  { setGameSaving(false); }
   }
 
-  // ── PGN / FEN export ──────────────────────────────────────────────────────
+  // -- PGN / FEN export ------------------------------------------------------
 
   function handleCopyPgn() {
     copyToClipboard(buildPgn(gameRef.current, gameMode, playerColor, timedOutRef.current)).then(() => {
@@ -750,7 +752,7 @@ export default function ChessGame() {
     });
   }
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  // -- Derived ---------------------------------------------------------------
 
   const moveHistory  = gameRef.current.history();
   const isGameOver   = gameRef.current.isGameOver() || timedOutColor !== null;
@@ -784,322 +786,479 @@ export default function ChessGame() {
     expert: "Opening book + Stockfish engine.",
   };
 
-  const topLabel       = boardOrientation === "white"
-    ? (gameMode === "vs-computer" ? (playerColor === "b" ? "You lost" : "Computer lost") : "Black lost")
-    : (gameMode === "vs-computer" ? (playerColor === "w" ? "You lost" : "Computer lost") : "White lost");
-  const bottomLabel    = boardOrientation === "white"
-    ? (gameMode === "vs-computer" ? (playerColor === "w" ? "You lost" : "Computer lost") : "White lost")
-    : (gameMode === "vs-computer" ? (playerColor === "b" ? "You lost" : "Computer lost") : "Black lost");
   const topCaptured    = boardOrientation === "white" ? captured.black : captured.white;
   const bottomCaptured = boardOrientation === "white" ? captured.white : captured.black;
   const topColor: "w" | "b"    = boardOrientation === "white" ? "b" : "w";
   const bottomColor: "w" | "b" = boardOrientation === "white" ? "w" : "b";
   const thinkingLabel  = isBookMove ? "Playing book move…" : "Computer thinking…";
+  const topSeatLabel = boardOrientation === "white"
+    ? (gameMode === "vs-computer" ? (playerColor === "w" ? "Computer · Black" : "You · Black") : "Black pieces")
+    : (gameMode === "vs-computer" ? (playerColor === "w" ? "You · White" : "Computer · White") : "White pieces");
+  const bottomSeatLabel = boardOrientation === "white"
+    ? (gameMode === "vs-computer" ? (playerColor === "w" ? "You · White" : "Computer · White") : "White pieces")
+    : (gameMode === "vs-computer" ? (playerColor === "w" ? "Computer · Black" : "You · Black") : "Black pieces");
+  const sessionLabel = gameMode === "local" ? "Local board" : `${difficultyLabel[difficulty]} engine`;
+  const sessionTone = gameMode === "local" ? "lux-badge" : difficulty === "expert" ? "lux-badge-gold" : "lux-badge-indigo";
+  const railShell = "rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.78),rgba(8,8,11,0.9))] shadow-[0_30px_90px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl";
+  const insetShell = "rounded-[1.45rem] border border-white/8 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]";
+  const sectionLabel = "text-[10px] uppercase tracking-[0.34em] text-white/32";
+  const utilityButton = "rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-white/82 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/16 hover:bg-white/[0.08]";
+  const optionButton = "rounded-full border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white/76 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/16 hover:bg-white/[0.08]";
+  const optionButtonActive = "rounded-full border border-[rgba(215,182,125,0.3)] bg-[linear-gradient(180deg,rgba(215,182,125,0.24),rgba(138,104,56,0.18))] px-4 py-3 text-sm font-semibold text-[rgba(249,237,214,0.94)] shadow-[0_14px_30px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14)] transition-all duration-300";
+  const optionButtonIndigo = "rounded-full border border-[rgba(124,130,255,0.28)] bg-[rgba(66,71,141,0.24)] px-4 py-3 text-sm font-semibold text-[rgba(231,234,255,0.94)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300";
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // -- Render ----------------------------------------------------------------
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center px-6 py-10">
-      <section className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
+    <main className="lux-shell relative min-h-screen overflow-hidden bg-[#050507] px-4 py-6 text-white sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-24 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(216,187,136,0.12),rgba(83,90,165,0.08)_42%,transparent_72%)] blur-[110px]" />
+        <div className="absolute left-1/2 top-1/2 h-[44rem] w-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.05),transparent_68%)] blur-[120px]" />
+        <span aria-hidden className="absolute left-1/2 top-[6%] -translate-x-1/2 text-[28rem] font-serif leading-none text-white/[0.03] blur-[8px]">
+          ♞
+        </span>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,transparent_38%,rgba(0,0,0,0.5)_100%)]" />
+      </div>
 
-        {/* Board column */}
-        <div className="flex flex-col gap-3 items-center w-full">
-
-          <div className={`w-full ${boardMaxW} flex items-center justify-between min-h-[36px] px-1`}>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-zinc-600 uppercase tracking-widest shrink-0">{topLabel}</span>
-              {topCaptured.length > 0
-                ? <span className="text-lg leading-none">{topCaptured.join("")}</span>
-                : <span className="text-zinc-700 text-xs italic">nothing yet</span>}
-            </div>
-            {timeControl > 0 && (
-              <ClockBadge
-                time={topColor === "w" ? whiteTime : blackTime}
-                isActive={clockActive && currentTurn === topColor}
-                isTimedOut={timedOutColor === topColor}
-              />
-            )}
-          </div>
-
-          <div className={`flex gap-2 items-stretch w-full ${boardMaxW}`}>
-            {showEvalBar && <EvalBar whitePercent={whitePercent} display={evalDisplay} orientation={boardOrientation} />}
-            <div className="flex-1 min-w-0">
-              <Chessboard
-                id="MainBoard"
-                position={fen}
-                onPieceDrop={onPieceDrop}
-                onSquareClick={onSquareClick}
-                arePiecesDraggable={!boardLocked}
-                boardOrientation={boardOrientation}
-                customSquareStyles={customSquareStyles}
-                customBoardStyle={{
-                  borderRadius: "8px",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-                  opacity: isBotThinking ? 0.85 : 1,
-                  transition: "opacity 0.2s ease",
-                }}
-              />
-            </div>
-          </div>
-
-          <div className={`w-full ${boardMaxW} flex items-center justify-between min-h-[36px] px-1`}>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-zinc-600 uppercase tracking-widest shrink-0">{bottomLabel}</span>
-              {bottomCaptured.length > 0
-                ? <span className="text-lg leading-none">{bottomCaptured.join("")}</span>
-                : <span className="text-zinc-700 text-xs italic">nothing yet</span>}
-            </div>
-            {timeControl > 0 && (
-              <ClockBadge
-                time={bottomColor === "w" ? whiteTime : blackTime}
-                isActive={clockActive && currentTurn === bottomColor}
-                isTimedOut={timedOutColor === bottomColor}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <aside className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 shadow-2xl space-y-4">
-
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tight">Chess</h1>
-            <button onClick={handleToggleMute} title={isMuted ? "Unmute" : "Mute"}
-              className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 flex items-center justify-center text-sm transition-all active:scale-95">
-              {isMuted ? "🔇" : "🔊"}
-            </button>
-          </div>
-
-          {/* User info */}
-          {userEmail ? (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-green-400 text-xs">●</span>
-                <span className="text-xs text-zinc-400 truncate">{userEmail}</span>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 ml-2">
-                <a href="/games" className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors font-semibold">
-                  History
-                </a>
-                <button onClick={handleLogout} className="text-[11px] text-zinc-600 hover:text-red-400 transition-colors">
-                  Logout
-                </button>
+      <section className="relative mx-auto flex w-full max-w-[1540px] flex-col gap-5 xl:grid xl:grid-cols-[232px_minmax(0,1fr)_360px] xl:items-start">
+        <header className="order-1 xl:col-span-3">
+          <div className="flex flex-col gap-4 rounded-[999px] border border-white/10 bg-[rgba(10,10,14,0.68)] px-5 py-4 shadow-[0_24px_64px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl sm:px-6 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className={sectionLabel}>chess</p>
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-white/50">
+                <span>{userEmail || "Guest session"}</span>
+                <span className="h-1 w-1 rounded-full bg-white/18" />
+                <span>{boardOrientation === "white" ? "White at base" : "Black at base"}</span>
               </div>
             </div>
-          ) : (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 flex items-center justify-between">
-              <span className="text-xs text-zinc-600 italic">Playing as guest</span>
-              <a href="/auth" className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors font-semibold">
-                Sign in
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className={`${sessionTone} inline-flex rounded-full px-4 py-2 text-sm font-semibold`}>
+                {sessionLabel}
+              </span>
+              {timeControl > 0 && (
+                <span className="lux-badge inline-flex rounded-full px-4 py-2 text-sm font-semibold">
+                  {Math.floor(timeControl / 60)} min clock
+                </span>
+              )}
+              {showEvalBar && (
+                <span className="lux-badge-gold inline-flex rounded-full px-4 py-2 text-sm font-semibold">
+                  Live evaluation
+                </span>
+              )}
+              <a href="/" className={utilityButton}>
+                Home
+              </a>
+              <a href="/multiplayer" className={utilityButton}>
+                Multiplayer
               </a>
             </div>
-          )}
-
-          {/* Game mode */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-1 flex gap-1">
-            {(["local", "vs-computer"] as GameMode[]).map((mode) => (
-              <button key={mode} onClick={() => handleModeChange(mode)}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
-                  gameMode === mode ? "bg-indigo-600 text-white" : "text-zinc-500 hover:text-zinc-300"
-                }`}>
-                {mode === "local" ? "Local" : "Vs Computer"}
-              </button>
-            ))}
           </div>
+        </header>
 
-          {/* Vs Computer options */}
-          {gameMode === "vs-computer" && (
-            <>
-              <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Play as</p>
-                <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-1 flex gap-1">
-                  <button onClick={() => handlePlayerColorChange("w")}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
-                      playerColor === "w" ? "bg-zinc-100 text-zinc-900" : "text-zinc-500 hover:text-zinc-300"
-                    }`}>♔ White</button>
-                  <button onClick={() => handlePlayerColorChange("b")}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
-                      playerColor === "b" ? "bg-zinc-800 text-zinc-100 border border-zinc-600" : "text-zinc-500 hover:text-zinc-300"
-                    }`}>♚ Black</button>
+        <aside className={`order-2 p-5 xl:order-2 ${railShell}`}>
+          <div className="space-y-5">
+            <div>
+              <p className={sectionLabel}>Player rail</p>
+              <p className="mt-4 text-lg font-medium tracking-tight text-white/92">{userEmail || "Guest session"}</p>
+              <p className="mt-1 text-sm text-white/44">
+                {boardOrientation === "white" ? "White at base" : "Black at base"}
+              </p>
+            </div>
+
+            <div className="border-t border-white/8 pt-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className={sectionLabel}>Upper</p>
+                  <p className="mt-3 text-sm text-white/78">{topSeatLabel}</p>
                 </div>
+                {timeControl > 0 ? (
+                  <ClockBadge
+                    time={topColor === "w" ? whiteTime : blackTime}
+                    isActive={clockActive && currentTurn === topColor}
+                    isTimedOut={timedOutColor === topColor}
+                  />
+                ) : (
+                  <span className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/36">Untimed</span>
+                )}
+              </div>
+              <div className="mt-4 min-h-7 text-lg leading-none text-[var(--gold-soft)]">
+                {topCaptured.length > 0 ? topCaptured.join("") : <span className="text-xs text-white/34">No captures</span>}
+              </div>
+            </div>
+
+            <div className="border-t border-white/8 pt-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className={sectionLabel}>Lower</p>
+                  <p className="mt-3 text-sm text-white/78">{bottomSeatLabel}</p>
+                </div>
+                {timeControl > 0 ? (
+                  <ClockBadge
+                    time={bottomColor === "w" ? whiteTime : blackTime}
+                    isActive={clockActive && currentTurn === bottomColor}
+                    isTimedOut={timedOutColor === bottomColor}
+                  />
+                ) : (
+                  <span className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/36">Untimed</span>
+                )}
+              </div>
+              <div className="mt-4 min-h-7 text-lg leading-none text-[var(--gold-soft)]">
+                {bottomCaptured.length > 0 ? bottomCaptured.join("") : <span className="text-xs text-white/34">No captures</span>}
+              </div>
+            </div>
+
+            <div className="border-t border-white/8 pt-5">
+              <div className={`rounded-[1.4rem] border px-4 py-4 text-sm transition-colors ${VARIANT_STYLES[statusState.variant]}`}>
+                <div className="flex items-center gap-2">
+                  {isBotThinking && <span className="inline-block h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-white/70" />}
+                  <span className="font-medium">{isBotThinking ? thinkingLabel : statusState.text}</span>
+                </div>
+                {showEvalBar && (
+                  <div className="mt-4 flex items-center justify-between rounded-full border border-white/8 bg-black/10 px-3 py-2">
+                    <span className="text-[11px] uppercase tracking-[0.28em] text-white/34">{isBookMove ? "Book" : "Eval"}</span>
+                    <span className="font-mono text-sm text-[var(--gold-soft)]">{isBookMove ? "Booked" : evalDisplay}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section className="order-3 xl:order-3">
+          <div className="relative overflow-hidden rounded-[2.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(10,10,13,0.86),rgba(6,6,8,0.94))] px-3 py-4 shadow-[0_44px_120px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] sm:px-5 sm:py-5">
+            <div className="pointer-events-none absolute inset-x-[16%] top-8 h-24 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.08),transparent_72%)] blur-3xl" />
+            <div className="pointer-events-none absolute left-1/2 top-1/2 h-[68%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(218,189,138,0.12),rgba(77,84,150,0.08)_48%,transparent_72%)] blur-[90px]" />
+            <div className={`relative mx-auto w-full ${boardMaxW} space-y-4`}>
+              <div className={`${insetShell} flex flex-wrap items-center justify-between gap-3 px-4 py-3`}>
+                <div>
+                  <p className={sectionLabel}>{topSeatLabel}</p>
+                  <div className="mt-2 min-h-6 text-lg leading-none text-[var(--gold-soft)]">
+                    {topCaptured.length > 0 ? topCaptured.join("") : <span className="text-xs italic text-white/34">No captures yet</span>}
+                  </div>
+                </div>
+                {timeControl > 0 && (
+                  <ClockBadge
+                    time={topColor === "w" ? whiteTime : blackTime}
+                    isActive={clockActive && currentTurn === topColor}
+                    isTimedOut={timedOutColor === topColor}
+                  />
+                )}
               </div>
 
-              <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Difficulty</p>
-                <div className="grid grid-cols-2 gap-1 rounded-xl border border-zinc-800 bg-zinc-950 p-1">
-                  {(["easy", "medium", "hard", "expert"] as BotDifficulty[]).map((d) => (
-                    <button key={d} onClick={() => handleDifficultyChange(d)}
-                      className={`py-2 rounded-lg text-xs font-semibold transition-all ${
-                        difficulty === d ? difficultyColor[d] : "text-zinc-500 hover:text-zinc-300"
-                      }`}>
-                      {difficultyLabel[d]}
-                      {d === "expert" && <span className="ml-1 text-[9px] opacity-70">SF</span>}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[11px] text-zinc-600 italic px-1">{difficultyDesc[difficulty]}</p>
-              </div>
-            </>
-          )}
-
-          {/* Time control */}
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Time Control</p>
-            <div className="grid grid-cols-5 gap-1 rounded-xl border border-zinc-800 bg-zinc-950 p-1">
-              {TIME_OPTIONS.map((opt) => (
-                <button key={opt.seconds} onClick={() => handleTimeControlChange(opt.seconds)}
-                  className={`py-2 rounded-lg text-xs font-semibold transition-all ${
-                    timeControl === opt.seconds ? "bg-indigo-600 text-white" : "text-zinc-500 hover:text-zinc-300"
-                  }`}>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-            {timeControl > 0 && <p className="text-[11px] text-zinc-600 italic px-1">Undo disabled with active clock.</p>}
-          </div>
-
-          {/* Status */}
-          <div className={`rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${VARIANT_STYLES[statusState.variant]}`}>
-            <div className="flex items-center gap-2">
-              {isBotThinking && <span className="inline-block w-2 h-2 rounded-full bg-zinc-400 animate-pulse shrink-0" />}
-              {isBotThinking ? thinkingLabel : statusState.text}
-            </div>
-          </div>
-
-          {/* Eval (Expert only) */}
-          {showEvalBar && (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
-                {isBookMove ? "Book" : "Evaluation"}
-              </span>
-              <span className={`text-sm font-bold font-mono tabular-nums ${
-                isBookMove ? "text-emerald-400"
-                : evalState.type === "mate"
-                  ? evalState.value > 0 ? "text-white" : "text-zinc-500"
-                  : evalState.value > 50  ? "text-white"
-                  : evalState.value < -50 ? "text-zinc-500"
-                  : "text-zinc-300"
-              }`}>
-                {isBookMove ? "📖" : evalDisplay}
-              </span>
-            </div>
-          )}
-
-          {/* Buttons */}
-          <div className="flex gap-2">
-            <button onClick={handleRestart}
-              className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-sm font-semibold transition-all">
-              Restart
-            </button>
-            <button onClick={handleFlipBoard}
-              className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 active:scale-95 text-white text-sm font-semibold transition-all"
-              title="Flip board">⇅</button>
-            <button onClick={handleUndo} disabled={!hasMoves || isGameOver || isBotThinking || timeControl > 0}
-              className="flex-1 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all">
-              Undo
-            </button>
-          </div>
-
-          {/* Move history */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Move History</p>
-              {hasMoves && <span className="text-[11px] text-zinc-600 tabular-nums">{moveHistory.length} move{moveHistory.length !== 1 ? "s" : ""}</span>}
-            </div>
-            {pairedMoves.length === 0
-              ? <p className="text-xs text-zinc-600 italic">No moves yet.</p>
-              : (
-                <div ref={historyContainerRef} className="max-h-48 overflow-y-auto pr-1 space-y-0.5">
-                  {pairedMoves.map(([white, black], idx) => (
-                    <div key={idx} className={`grid grid-cols-[28px_1fr_1fr] gap-1 text-sm rounded px-1 py-0.5 ${
-                      idx === pairedMoves.length - 1 ? "bg-zinc-800/60" : "hover:bg-zinc-900"
-                    }`}>
-                      <span className="text-zinc-600 tabular-nums">{idx + 1}.</span>
-                      <span className="text-zinc-200 font-mono">{white}</span>
-                      <span className="text-zinc-400 font-mono">{black ?? ""}</span>
+              <div className="flex items-stretch gap-3 sm:gap-4">
+                {showEvalBar && <EvalBar whitePercent={whitePercent} display={evalDisplay} orientation={boardOrientation} />}
+                <div className="relative min-w-0 flex-1">
+                  <div className="pointer-events-none absolute inset-[7%] rounded-[2rem] bg-[radial-gradient(circle,rgba(255,255,255,0.1),rgba(218,189,138,0.06)_36%,transparent_72%)] blur-[58px]" />
+                  <div className="pointer-events-none absolute inset-x-[8%] -bottom-10 h-24 rounded-full bg-black/70 blur-3xl" />
+                  <div className="relative rounded-[2.25rem] border border-white/12 bg-[linear-gradient(160deg,rgba(29,29,37,0.76),rgba(10,10,13,0.92))] p-3 shadow-[0_36px_100px_rgba(0,0,0,0.58),inset_0_1px_0_rgba(255,255,255,0.06)] sm:p-4">
+                    <div className="rounded-[1.9rem] border border-white/10 bg-[#09090c] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-4">
+                      <Chessboard
+                        id="MainBoard"
+                        position={fen}
+                        onPieceDrop={onPieceDrop}
+                        onSquareClick={onSquareClick}
+                        arePiecesDraggable={!boardLocked}
+                        boardOrientation={boardOrientation}
+                        customSquareStyles={customSquareStyles}
+                        customBoardStyle={{
+                          borderRadius: "22px",
+                          boxShadow: "0 42px 110px rgba(0,0,0,0.56)",
+                          opacity: isBotThinking ? 0.88 : 1,
+                          transition: "opacity 0.2s ease, transform 0.2s ease",
+                        }}
+                      />
                     </div>
-                  ))}
+                  </div>
                 </div>
-              )}
-          </div>
+              </div>
 
-          {/* PGN Export */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">Export</p>
-            {hasMoves
-              ? <div className="rounded-lg bg-zinc-900 border border-zinc-800 px-3 py-2 max-h-28 overflow-y-auto">
-                  <p className="text-[10px] font-mono text-zinc-500 break-all leading-relaxed whitespace-pre-wrap">
-                    {buildPgn(gameRef.current, gameMode, playerColor, timedOutRef.current)}
-                  </p>
+              <div className={`${insetShell} flex flex-wrap items-center justify-between gap-3 px-4 py-3`}>
+                <div>
+                  <p className={sectionLabel}>{bottomSeatLabel}</p>
+                  <div className="mt-2 min-h-6 text-lg leading-none text-[var(--gold-soft)]">
+                    {bottomCaptured.length > 0 ? bottomCaptured.join("") : <span className="text-xs italic text-white/34">No captures yet</span>}
+                  </div>
                 </div>
-              : <p className="text-xs text-zinc-600 italic">Play some moves to enable export.</p>
-            }
-            <div className="flex gap-2">
-              <button onClick={handleCopyPgn} disabled={!hasMoves}
-                className="flex-1 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all">
-                {copyPgnState === "copied" ? "✓ Copied!" : "Copy PGN"}
-              </button>
-              <button onClick={handleDownloadPgn} disabled={!hasMoves}
-                className="flex-1 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all">
-                Download
+                {timeControl > 0 && (
+                  <ClockBadge
+                    time={bottomColor === "w" ? whiteTime : blackTime}
+                    isActive={clockActive && currentTurn === bottomColor}
+                    isTimedOut={timedOutColor === bottomColor}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside className="order-4 space-y-4 xl:order-4">
+
+          <section className={`p-5 ${railShell}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className={sectionLabel}>Control rail</p>
+                <p className="mt-4 text-lg font-medium tracking-tight text-white/92">Match settings</p>
+                <p className="mt-2 text-sm leading-6 text-white/48">
+                  Quiet controls for mode, clocks, notation, and board actions.
+                </p>
+              </div>
+              <button
+                onClick={handleToggleMute}
+                title={isMuted ? "Unmute" : "Mute"}
+                className={utilityButton}
+              >
+                {isMuted ? "Muted" : "Sound"}
               </button>
             </div>
-            <button onClick={handleCopyFen}
-              className="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-300 text-xs font-semibold transition-all">
-              {copyFenState === "copied" ? "✓ FEN Copied!" : "Copy FEN"}
-            </button>
-          </div>
 
-          {/* Game over banner */}
-          {isGameOver && (
-            <div className="space-y-2">
-              <div className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-center text-xs text-zinc-400">
-                Game over —{" "}
-                <button onClick={handleRestart}
-                  className="text-white font-semibold underline underline-offset-2 hover:text-indigo-400 transition-colors">
-                  Restart
-                </button>{" "}to play again
-              </div>
-              {userEmail && (
-                <button
-                  onClick={handleSaveGame}
-                  disabled={gameSaving || gameSaved}
-                  className="w-full py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all"
-                >
-                  {gameSaved ? "✓ Game Saved!" : gameSaving ? "Saving…" : "Save Game"}
+            <div className="mt-5 flex items-center gap-3 text-sm">
+              <a href="/games" className="text-[var(--indigo-soft)] transition-colors hover:text-white">
+                History
+              </a>
+              {userEmail ? (
+                <button onClick={handleLogout} className="text-white/42 transition-colors hover:text-white/78">
+                  Logout
                 </button>
+              ) : (
+                <a href="/auth" className="text-white/42 transition-colors hover:text-white/78">
+                  Sign in
+                </a>
               )}
             </div>
-          )}
 
-          {/* Legend */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 mb-1">Legend</p>
-            {[
-              { style: { background: "rgba(99,102,241,0.55)" },           label: "Selected piece",  round: false },
-              { style: { background: "radial-gradient(circle, rgba(99,102,241,0.55) 25%, transparent 26%)" }, label: "Legal move",    round: true  },
-              { style: { background: "radial-gradient(circle, transparent 60%, rgba(99,102,241,0.55) 61%)" }, label: "Legal capture", round: true  },
-              { style: { background: "rgba(255,255,100,0.30)" },           label: "Last move",       round: false },
-            ].map(({ style, label, round }) => (
-              <div key={label} className="flex items-center gap-2 text-xs text-zinc-400">
-                <span className={`w-4 h-4 shrink-0 ${round ? "rounded-full" : "rounded-sm"}`} style={style} />
-                {label}
+            <div className="mt-5 border-t border-white/8 pt-5">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className={`${insetShell} px-4 py-3`}>
+                  <p className={sectionLabel}>Mode</p>
+                  <p className="mt-2 text-sm text-white/84">{gameMode === "local" ? "Local board" : "Engine match"}</p>
+                </div>
+                <div className={`${insetShell} px-4 py-3`}>
+                  <p className={sectionLabel}>Clock</p>
+                  <p className="mt-2 text-sm text-white/84">{timeControl > 0 ? `${Math.floor(timeControl / 60)} min selected` : "Untimed session"}</p>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* FEN debug */}
-          <details>
-            <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-widest text-zinc-600 hover:text-zinc-400 transition-colors select-none">
-              FEN (debug)
-            </summary>
-            <p className="mt-2 rounded-lg bg-zinc-950 border border-zinc-800 px-3 py-2 text-[10px] font-mono text-zinc-500 break-all leading-relaxed">
-              {fen}
-            </p>
-          </details>
+            <div className="mt-5 border-t border-white/8 pt-5">
+              <p className={sectionLabel}>Mode</p>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {(["local", "vs-computer"] as GameMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => handleModeChange(mode)}
+                    className={gameMode === mode ? optionButtonActive : optionButton}
+                  >
+                    {mode === "local" ? "Local" : "Vs Computer"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {gameMode === "vs-computer" && (
+              <>
+                <div className="mt-5 border-t border-white/8 pt-5">
+                  <p className={sectionLabel}>Seat</p>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handlePlayerColorChange("w")}
+                      className={playerColor === "w" ? optionButtonActive : optionButton}
+                    >
+                      White
+                    </button>
+                    <button
+                      onClick={() => handlePlayerColorChange("b")}
+                      className={playerColor === "b" ? optionButtonActive : optionButton}
+                    >
+                      Black
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-5 border-t border-white/8 pt-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className={sectionLabel}>Engine</p>
+                    <span className={`${difficulty === "expert" ? "lux-badge-gold" : "lux-badge-indigo"} inline-flex rounded-full px-3 py-1 text-xs font-semibold`}>
+                      {difficultyLabel[difficulty]}
+                    </span>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {(["easy", "medium", "hard", "expert"] as BotDifficulty[]).map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => handleDifficultyChange(d)}
+                        className={difficulty === d ? optionButtonIndigo : optionButton}
+                      >
+                        {difficultyLabel[d]}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-white/50">{difficultyDesc[difficulty]}</p>
+                </div>
+              </>
+            )}
+
+            <div className="mt-5 border-t border-white/8 pt-5">
+              <p className={sectionLabel}>Clock</p>
+              <div className="mt-4 grid grid-cols-5 gap-2">
+                {TIME_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.seconds}
+                    onClick={() => handleTimeControlChange(opt.seconds)}
+                    className={timeControl === opt.seconds ? optionButtonIndigo : optionButton}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {timeControl > 0 && (
+                <p className="mt-3 text-xs leading-6 text-white/40">Undo is disabled while a live clock is active.</p>
+              )}
+            </div>
+
+            <div className="mt-5 border-t border-white/8 pt-5">
+              <p className={sectionLabel}>Actions</p>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={handleRestart}
+                  className="lux-button-primary flex-1 rounded-full px-4 py-3 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  Restart
+                </button>
+                <button
+                  onClick={handleFlipBoard}
+                  className={utilityButton}
+                  title="Flip board"
+                >
+                  Flip
+                </button>
+                <button
+                  onClick={handleUndo}
+                  disabled={!hasMoves || isGameOver || isBotThinking || timeControl > 0}
+                  className={`${utilityButton} flex-1 disabled:cursor-not-allowed disabled:opacity-35`}
+                >
+                  Undo
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section className={`p-5 ${railShell}`}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className={sectionLabel}>Notation</p>
+                <p className="mt-4 text-lg font-medium tracking-tight text-white/92">Move history</p>
+              </div>
+              {hasMoves && (
+                <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/36">
+                  {moveHistory.length} move{moveHistory.length !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+
+            {pairedMoves.length === 0 ? (
+              <p className="mt-4 text-sm italic text-white/34">No moves yet.</p>
+            ) : (
+              <div ref={historyContainerRef} className="mt-4 max-h-64 space-y-1 overflow-y-auto pr-1">
+                {pairedMoves.map(([white, black], idx) => (
+                  <div
+                    key={idx}
+                    className={`grid grid-cols-[34px_1fr_1fr] gap-2 rounded-[1rem] px-3 py-2 text-sm transition-colors ${
+                      idx === pairedMoves.length - 1 ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    <span className="font-mono text-white/32">{idx + 1}.</span>
+                    <span className="font-mono text-white/82">{white}</span>
+                    <span className="font-mono text-white/54">{black ?? ""}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 border-t border-white/8 pt-5">
+              <p className={sectionLabel}>Export</p>
+              {hasMoves ? (
+                <div className="mt-4 rounded-[1.35rem] border border-white/8 bg-[rgba(8,8,12,0.76)] p-3">
+                  <div className="max-h-32 overflow-y-auto pr-1">
+                    <p className="font-mono text-[11px] leading-6 text-white/50 whitespace-pre-wrap break-all">
+                      {buildPgn(gameRef.current, gameMode, playerColor, timedOutRef.current)}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-white/38">Play a few moves to enable PGN and FEN export.</p>
+              )}
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <button
+                  onClick={handleCopyPgn}
+                  disabled={!hasMoves}
+                  className={`${optionButtonIndigo} disabled:cursor-not-allowed disabled:opacity-35`}
+                >
+                  {copyPgnState === "copied" ? "PGN copied" : "Copy PGN"}
+                </button>
+                <button
+                  onClick={handleDownloadPgn}
+                  disabled={!hasMoves}
+                  className={`${optionButton} disabled:cursor-not-allowed disabled:opacity-35`}
+                >
+                  Download PGN
+                </button>
+              </div>
+              <button
+                onClick={handleCopyFen}
+                className={`${utilityButton} mt-2 w-full`}
+              >
+                {copyFenState === "copied" ? "FEN copied" : "Copy FEN"}
+              </button>
+            </div>
+
+            {isGameOver && (
+              <div className="mt-6 border-t border-white/8 pt-5">
+                <div className={`${insetShell} px-4 py-4 text-sm text-white/66`}>
+                  Game over. Restart to open a fresh board.
+                </div>
+                {userEmail && (
+                  <button
+                    onClick={handleSaveGame}
+                    disabled={gameSaving || gameSaved}
+                    className="lux-button-primary mt-4 w-full rounded-full px-4 py-3 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    {gameSaved ? "Game saved" : gameSaving ? "Saving..." : "Save game"}
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="mt-6 border-t border-white/8 pt-5">
+              <p className={sectionLabel}>Board guide</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {[
+                  { style: { background: "rgba(99,102,241,0.55)" }, label: "Selected piece", round: false },
+                  { style: { background: "radial-gradient(circle, rgba(99,102,241,0.55) 25%, transparent 26%)" }, label: "Legal move", round: true },
+                  { style: { background: "radial-gradient(circle, transparent 60%, rgba(99,102,241,0.55) 61%)" }, label: "Legal capture", round: true },
+                  { style: { background: "rgba(255,255,100,0.30)" }, label: "Last move", round: false },
+                ].map(({ style, label, round }) => (
+                  <div key={label} className="flex items-center gap-3 text-sm text-white/56">
+                    <span className={`h-4 w-4 shrink-0 ${round ? "rounded-full" : "rounded-sm"}`} style={style} />
+                    {label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <details className="mt-6">
+              <summary className="cursor-pointer text-sm font-semibold text-white/52 transition-colors hover:text-white">
+                FEN debug
+              </summary>
+              <p className="mt-4 rounded-[1.2rem] border border-white/8 bg-[rgba(8,8,12,0.76)] px-4 py-3 font-mono text-[11px] leading-6 text-white/44 break-all">
+                {fen}
+              </p>
+            </details>
+          </section>
         </aside>
       </section>
     </main>
   );
 }
+
