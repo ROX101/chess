@@ -63,14 +63,34 @@ export default function MultiplayerGame() {
   const [drawOffered,     setDrawOffered]     = useState<boolean>(false);
   const [gameResult,      setGameResult]      = useState<string>("");
   const [copiedRoom,      setCopiedRoom]      = useState<boolean>(false);
+  const [isMuted,         setIsMuted]         = useState<boolean>(false);
   const [moveHistory,     setMoveHistory]     = useState<string[]>([]);
   const historyContainerRef = useRef<HTMLDivElement>(null);
 
   const playerColorRef = useRef<PlayerColor>("w");
   const roomIdRef      = useRef("");
+  const isMutedRef     = useRef(false);
+  const sndMove        = useRef<HTMLAudioElement | null>(null);
+  const sndCapture     = useRef<HTMLAudioElement | null>(null);
+  const sndCheck       = useRef<HTMLAudioElement | null>(null);
+  const sndCheckmate   = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => { playerColorRef.current = playerColor; }, [playerColor]);
   useEffect(() => { roomIdRef.current      = roomId;      }, [roomId]);
+  useEffect(() => { isMutedRef.current     = isMuted;     }, [isMuted]);
+
+  useEffect(() => {
+    sndMove.current      = new Audio("/move.mp3");
+    sndCapture.current   = new Audio("/capture.mp3");
+    sndCheck.current     = new Audio("/check.mp3");
+    sndCheckmate.current = new Audio("/checkmate.mp3");
+
+    [sndMove, sndCapture, sndCheck, sndCheckmate].forEach((ref) => {
+      if (!ref.current) return;
+      ref.current.preload = "auto";
+      ref.current.load();
+    });
+  }, []);
 
   useEffect(() => {
     if (historyContainerRef.current) {
@@ -113,6 +133,7 @@ export default function MultiplayerGame() {
       try {
         const result = g.move(move);
         if (result) {
+          playMoveSound(result.flags.includes("c") || result.flags.includes("e"), g);
           setFen(g.fen());
           setLastMove({ from: result.from, to: result.to });
           setMoveHistory(g.history());
@@ -171,6 +192,20 @@ export default function MultiplayerGame() {
     socketRef.current?.emit("gameOver", { roomId: roomIdRef.current, result });
   }
 
+  function playMoveSound(isCapture: boolean, afterGame: Chess) {
+    if (isMutedRef.current) return;
+
+    let target: HTMLAudioElement | null = null;
+    if (afterGame.isCheckmate()) target = sndCheckmate.current;
+    else if (afterGame.inCheck()) target = sndCheck.current;
+    else if (isCapture) target = sndCapture.current;
+    else target = sndMove.current;
+
+    if (!target) return;
+    target.currentTime = 0;
+    target.play().catch(() => {});
+  }
+
   // ── Move handling ─────────────────────────────────────────────────────────
 
   function attemptMove(from: Square, to: Square): boolean {
@@ -186,6 +221,7 @@ export default function MultiplayerGame() {
       setLastMove({ from, to });
       setMoveHistory(g.history());
       clearSelection();
+      playMoveSound(move.flags.includes("c") || move.flags.includes("e"), g);
 
       socketRef.current?.emit("makeMove", {
         roomId: roomIdRef.current,
